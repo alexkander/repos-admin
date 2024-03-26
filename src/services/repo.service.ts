@@ -3,13 +3,21 @@ import * as fs from 'fs';
 import { glob } from 'glob';
 import * as path from 'path';
 import simpleGit from 'simple-git';
-import { configuration } from '../configuration/configuration';
+import { FolderRepository } from 'src/repositories/folder.repository';
+import { Folder } from 'src/schemas/folder.schema';
 import { RepoConstants } from '../constants/repo.constants';
 import { RepoRepository } from '../repositories/repo.repository';
 
 @Injectable()
 export class RepoService {
-  constructor(private readonly repoRepository: RepoRepository) {}
+  constructor(
+    private readonly repoRepository: RepoRepository,
+    private readonly folderRepository: FolderRepository,
+  ) { }
+
+  list() {
+    return this.repoRepository.find();
+  }
 
   async saveLocalRepos() {
     await this.repoRepository.deleteMany();
@@ -21,23 +29,17 @@ export class RepoService {
     return records;
   }
 
-  listDirectories() {
-    return configuration.REPOSITORIES_DIRECTORIES.map((d) =>
-      path.resolve(d.trim()),
-    );
-  }
-
   async listLocalRepos() {
-    const directories = this.listDirectories();
-    const allFilesPromises = directories.map((d) => {
-      return this.getReposInDirectory(d, d);
+    const directories = await this.folderRepository.find();
+    const allFilesPromises = directories.map((folder) => {
+      return this.getReposInDirectory(folder.forderPath, folder);
     });
     const allFiles = (await Promise.all(allFilesPromises)).flatMap((f) => f);
 
     return allFiles;
   }
 
-  async getReposInDirectory(directory: string, baseDirectory: string) {
+  async getReposInDirectory(directory: string, folder: Folder) {
     const allSubDirectories = await this.getSubDirectories(directory);
     const subDirectories = allSubDirectories.filter((d) => {
       return !RepoConstants.ignoreDirectories.find((regex) => d.match(regex));
@@ -47,14 +49,21 @@ export class RepoService {
       const itemDirectory = path.resolve(directory, subDirectory);
       const gitDirectory = path.resolve(itemDirectory, '.git');
       if (fs.existsSync(gitDirectory)) {
-        const repo = path.relative(baseDirectory, itemDirectory);
-        const dirname = path.dirname(repo);
-        const basename = path.basename(repo);
+        const directory = path.relative(folder.forderPath, itemDirectory);
+        const group = path.dirname(directory);
+        const localName = path.basename(directory);
         const { valid, error } = await this.getRepoInfo(itemDirectory);
-        const data = { base: baseDirectory, dirname, basename, valid, error };
+        const data = {
+          folderKey: folder.folderKey,
+          directory,
+          group,
+          localName,
+          valid,
+          error,
+        };
         return [data];
       } else {
-        return this.getReposInDirectory(itemDirectory, baseDirectory);
+        return this.getReposInDirectory(itemDirectory, folder);
       }
     });
 

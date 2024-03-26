@@ -5,9 +5,14 @@ import { RepoService } from 'src/services/repo.service';
 export class RepoController {
   constructor(private readonly repoService: RepoService) {}
 
-  @Get('/listDirectories')
-  listDirectories() {
-    return this.repoService.listDirectories();
+  @Get('/')
+  list() {
+    return this.repoService.list();
+  }
+
+  @Get('/listLocalRepos')
+  listLocalRepos() {
+    return this.repoService.listLocalRepos();
   }
 
   @Post('/saveLocalRepos')

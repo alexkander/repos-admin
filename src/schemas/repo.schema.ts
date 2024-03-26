@@ -5,10 +5,11 @@ export type RepoDocument = HydratedDocument<Repo>;
 
 @Schema()
 export class Repo {
+  @Prop() folderKey: string;
+  @Prop() directory: string;
+  @Prop() group: string;
+  @Prop() localName: string;
   @Prop() valid: boolean;
-  @Prop() baseDir: string;
-  @Prop() dirname: string;
-  @Prop() basename: string;
   @Prop(raw({})) error: Record<string, any>;
 }
 

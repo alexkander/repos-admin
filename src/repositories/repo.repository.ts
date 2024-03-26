@@ -4,9 +4,10 @@ import { FilterQuery, Model } from 'mongoose';
 import { Repo } from '../schemas/repo.schema';
 
 type CreateDto = {
-  base: string;
-  dirname: string;
-  basename: string;
+  folderKey: string;
+  directory: string;
+  group: string;
+  localName: string;
   valid: boolean;
   error?: Record<string, any>;
 };
@@ -15,7 +16,11 @@ type CreateDto = {
 export class RepoRepository {
   constructor(
     @InjectModel(Repo.name) private readonly RepoModel: Model<Repo>,
-  ) {}
+  ) { }
+
+  find(query?: FilterQuery<Repo>) {
+    return this.RepoModel.find(query).lean();
+  }
 
   async create(data: CreateDto) {
     return this.RepoModel.create(data);
