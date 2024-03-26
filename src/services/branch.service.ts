@@ -1,23 +1,23 @@
 import { Injectable } from '@nestjs/common';
+import { BranchRepository } from '../repositories/branch.repository';
 import { FolderRepository } from '../repositories/folder.repository';
-import { RemoteRepository } from '../repositories/remote.repository';
 import { RepoRepository } from '../repositories/repo.repository';
 import { GitRepoService } from './gitRepo.service';
 
 @Injectable()
-export class RemoteService {
+export class BranchService {
   constructor(
-    private readonly remoteRepository: RemoteRepository,
+    private readonly branchRepository: BranchRepository,
     private readonly repoRepository: RepoRepository,
     private readonly folderRepository: FolderRepository,
     private readonly gitRepoService: GitRepoService,
   ) { }
 
   list() {
-    return this.remoteRepository.find();
+    return this.branchRepository.find();
   }
 
-  async listLocalRemotes() {
+  async listBranches() {
     const folders = await this.folderRepository.find();
     const remotesPromises = folders.map(async (folder) => {
       const repositories = await this.repoRepository.getValidReposByFolderKey(
@@ -28,15 +28,15 @@ export class RemoteService {
           folder.forderPath,
           repository.directory,
         );
-        const remotesData = await repo.getRemotes();
-        const remotes = remotesData.map((item) => {
+        const branchesData = await repo.getBranches();
+        const branches = branchesData.map((item) => {
           return {
             folderKey: folder.folderKey,
             directory: repository.directory,
             ...item,
           };
         });
-        return remotes;
+        return branches;
       });
 
       const remotes = (await Promise.all(remotesPromises)).flatMap((r) => r);
@@ -47,11 +47,11 @@ export class RemoteService {
     return remotes;
   }
 
-  async saveLocalRemotes() {
-    await this.remoteRepository.deleteMany();
-    const localRemotes = await this.listLocalRemotes();
-    const createPromises = localRemotes.map((remote) => {
-      return this.remoteRepository.create(remote);
+  async saveBranches() {
+    await this.branchRepository.deleteMany();
+    const branches = await this.listBranches();
+    const createPromises = branches.map((remote) => {
+      return this.branchRepository.create(remote);
     });
     const records = Promise.all(createPromises);
     return records;

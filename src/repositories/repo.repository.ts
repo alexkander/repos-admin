@@ -14,7 +14,7 @@ export class RepoRepository {
   }
 
   getValidReposByFolderKey(folderKey: string) {
-    return this.RepoModel.find({ folderKey }).lean();
+    return this.RepoModel.find({ folderKey, valid: true }).lean();
   }
 
   async create(data: Repo) {
