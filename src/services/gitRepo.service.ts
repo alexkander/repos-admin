@@ -10,12 +10,8 @@ export class GitRepoService {
   }
 
   async getRepoInfo(directory: string) {
-    try {
-      const gitRepo = simpleGit(directory);
-      await gitRepo.log();
-      return { valid: true };
-    } catch (e) {
-      return { error: e, valid: false };
-    }
+    const gitRepo = simpleGit(directory);
+    const valid = await gitRepo.checkIsRepo();
+    return { valid };
   }
 }

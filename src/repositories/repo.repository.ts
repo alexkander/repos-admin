@@ -3,15 +3,6 @@ import { InjectModel } from '@nestjs/mongoose';
 import { FilterQuery, Model } from 'mongoose';
 import { Repo } from '../schemas/repo.schema';
 
-type CreateDto = {
-  folderKey: string;
-  directory: string;
-  group: string;
-  localName: string;
-  valid: boolean;
-  error?: Record<string, any>;
-};
-
 @Injectable()
 export class RepoRepository {
   constructor(
@@ -23,10 +14,10 @@ export class RepoRepository {
   }
 
   getValidReposByFolderKey(folderKey: string) {
-    return this.RepoModel.find({ folderKey, valid: true }).lean();
+    return this.RepoModel.find({ folderKey }).lean();
   }
 
-  async create(data: CreateDto) {
+  async create(data: Repo) {
     return this.RepoModel.create(data);
   }
 

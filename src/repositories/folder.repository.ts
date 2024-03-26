@@ -3,11 +3,6 @@ import { InjectModel } from '@nestjs/mongoose';
 import { FilterQuery, Model } from 'mongoose';
 import { Folder } from '../schemas/folder.schema';
 
-type CreateDto = {
-  folderKey: string;
-  forderPath: string;
-};
-
 @Injectable()
 export class FolderRepository {
   constructor(
@@ -18,7 +13,7 @@ export class FolderRepository {
     return this.FolderModel.find(query).lean();
   }
 
-  async create(data: CreateDto) {
+  async create(data: Folder) {
     return this.FolderModel.create(data);
   }
 

@@ -3,15 +3,6 @@ import { InjectModel } from '@nestjs/mongoose';
 import { FilterQuery, Model } from 'mongoose';
 import { Remote } from '../schemas/remote.schema';
 
-type CreateDto = {
-  folderKey: string;
-  directory: string;
-  name: string;
-  url: string;
-  rare: boolean;
-  refs: Record<string, any>;
-};
-
 @Injectable()
 export class RemoteRepository {
   constructor(
@@ -22,7 +13,7 @@ export class RemoteRepository {
     return this.RemoteModel.find(query).lean();
   }
 
-  async create(data: CreateDto) {
+  async create(data: Remote) {
     return this.RemoteModel.create(data);
   }
 

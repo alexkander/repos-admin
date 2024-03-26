@@ -53,14 +53,13 @@ export class RepoService {
         const directory = path.relative(folder.forderPath, itemDirectory);
         const group = path.dirname(directory);
         const localName = path.basename(directory);
-        const { valid, error } = await this.gitRepoService.getRepoInfo(itemDirectory);
+        const { valid } = await this.gitRepoService.getRepoInfo(itemDirectory);
         const data = {
           folderKey: folder.folderKey,
           directory,
           group,
           localName,
           valid,
-          error,
         };
         return [data];
       } else {
