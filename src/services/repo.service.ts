@@ -2,17 +2,18 @@ import { Injectable } from '@nestjs/common';
 import * as fs from 'fs';
 import { glob } from 'glob';
 import * as path from 'path';
-import simpleGit from 'simple-git';
 import { FolderRepository } from 'src/repositories/folder.repository';
 import { Folder } from 'src/schemas/folder.schema';
 import { RepoConstants } from '../constants/repo.constants';
 import { RepoRepository } from '../repositories/repo.repository';
+import { GitRepoService } from './gitRepo.service';
 
 @Injectable()
 export class RepoService {
   constructor(
     private readonly repoRepository: RepoRepository,
     private readonly folderRepository: FolderRepository,
+    private readonly gitRepoService: GitRepoService,
   ) { }
 
   list() {
@@ -52,7 +53,7 @@ export class RepoService {
         const directory = path.relative(folder.forderPath, itemDirectory);
         const group = path.dirname(directory);
         const localName = path.basename(directory);
-        const { valid, error } = await this.getRepoInfo(itemDirectory);
+        const { valid, error } = await this.gitRepoService.getRepoInfo(itemDirectory);
         const data = {
           folderKey: folder.folderKey,
           directory,
@@ -77,16 +78,5 @@ export class RepoService {
       cwd: directory,
     });
     return subDirectories;
-  }
-
-  async getRepoInfo(directory: string) {
-    try {
-      const gitRepo = simpleGit(directory);
-      await gitRepo.log();
-      return { gitRepo, valid: true };
-    } catch (e) {
-      console.log('e', e);
-      return { error: e, valid: false };
-    }
   }
 }

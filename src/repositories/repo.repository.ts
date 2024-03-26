@@ -22,6 +22,10 @@ export class RepoRepository {
     return this.RepoModel.find(query).lean();
   }
 
+  getValidReposByFolderKey(folderKey: string) {
+    return this.RepoModel.find({ folderKey, valid: true }).lean();
+  }
+
   async create(data: CreateDto) {
     return this.RepoModel.create(data);
   }

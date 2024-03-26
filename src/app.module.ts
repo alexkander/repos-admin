@@ -9,6 +9,11 @@ import { Folder, FolderSchema } from './schemas/folder.schema';
 import { Repo, RepoSchema } from './schemas/repo.schema';
 import { FolderService } from './services/folder.service';
 import { RepoService } from './services/repo.service';
+import { Remote, RemoteSchema } from './schemas/remote.schema';
+import { RemoteController } from './controllers/remote.controller';
+import { RemoteRepository } from './repositories/remote.repository';
+import { RemoteService } from './services/remote.service';
+import { GitRepoService } from './services/gitRepo.service';
 
 @Module({
   imports: [
@@ -16,9 +21,18 @@ import { RepoService } from './services/repo.service';
     MongooseModule.forFeature([
       { name: Folder.name, schema: FolderSchema },
       { name: Repo.name, schema: RepoSchema },
+      { name: Remote.name, schema: RemoteSchema },
     ]),
   ],
-  controllers: [FolderController, RepoController],
-  providers: [FolderRepository, FolderService, RepoService, RepoRepository],
+  controllers: [FolderController, RepoController, RemoteController],
+  providers: [
+    FolderRepository,
+    FolderService,
+    RepoService,
+    RepoRepository,
+    RemoteRepository,
+    RemoteService,
+    GitRepoService,
+  ],
 })
 export class AppModule { }
