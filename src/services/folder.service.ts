@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { FolderRepository } from 'src/repositories/folder.repository';
+import { FolderRepository } from '../repositories/folder.repository';
 import { configuration } from '../configuration/configuration';
 import * as path from 'path';
 

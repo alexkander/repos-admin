@@ -1,5 +1,5 @@
 import { Controller, Get, Post } from '@nestjs/common';
-import { FolderService } from 'src/services/folder.service';
+import { FolderService } from '../services/folder.service';
 
 @Controller('folder')
 export class FolderController {

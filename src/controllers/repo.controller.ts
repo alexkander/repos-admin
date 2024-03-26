@@ -1,5 +1,5 @@
 import { Controller, Get, Post } from '@nestjs/common';
-import { RepoService } from 'src/services/repo.service';
+import { RepoService } from '../services/repo.service';
 
 @Controller('repository')
 export class RepoController {

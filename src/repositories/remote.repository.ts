@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { FilterQuery, Model } from 'mongoose';
-import { Remote } from 'src/schemas/remote.schema';
+import { Remote } from '../schemas/remote.schema';
 
 type CreateDto = {
   folderKey: string;

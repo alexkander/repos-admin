@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { FolderRepository } from 'src/repositories/folder.repository';
-import { RemoteRepository } from 'src/repositories/remote.repository';
-import { RepoRepository } from 'src/repositories/repo.repository';
+import { FolderRepository } from '../repositories/folder.repository';
+import { RemoteRepository } from '../repositories/remote.repository';
+import { RepoRepository } from '../repositories/repo.repository';
 import { GitRepoService } from './gitRepo.service';
 
 @Injectable()

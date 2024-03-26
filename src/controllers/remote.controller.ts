@@ -1,5 +1,5 @@
 import { Controller, Get, Post } from '@nestjs/common';
-import { RemoteService } from 'src/services/remote.service';
+import { RemoteService } from '../services/remote.service';
 
 @Controller('remote')
 export class RemoteController {
