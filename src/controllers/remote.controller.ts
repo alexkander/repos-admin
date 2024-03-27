@@ -1,5 +1,6 @@
-import { Controller, Get, Post } from '@nestjs/common';
+import { Controller, Get, Post, Req } from '@nestjs/common';
 import { RemoteService } from '../services/remote.service';
+import { Request } from 'express';
 
 @Controller('remote')
 export class RemoteController {
@@ -23,5 +24,18 @@ export class RemoteController {
   @Post('/parseRemotes')
   parseRemotes() {
     return this.remoteService.parseRemotes();
+  }
+
+  @Get('/compareRemotes/:folderKey/:remotes/*')
+  compareRemotes(@Req() req: Request) {
+    const { folderKey, remotes } = req.params;
+    const [remoteFrom, remoteTo] = remotes.split(':');
+    const directory = req.params['0'];
+    return this.remoteService.compareRemotes({
+      folderKey,
+      remoteFrom,
+      remoteTo,
+      directory,
+    });
   }
 }

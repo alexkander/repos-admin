@@ -1,9 +1,10 @@
 import { Injectable } from '@nestjs/common';
+import { BranchRepository } from 'src/repositories/branch.repository';
 import { RemoteConstants } from '../constants/remote.constants';
-import { RemoteUrlType } from '../types/remotes.type';
 import { FolderRepository } from '../repositories/folder.repository';
 import { RemoteRepository } from '../repositories/remote.repository';
 import { RepoRepository } from '../repositories/repo.repository';
+import { RemoteUrlType } from '../types/remotes.type';
 import { GitRepoService } from './gitRepo.service';
 
 @Injectable()
@@ -12,6 +13,7 @@ export class RemoteService {
     private readonly remoteRepository: RemoteRepository,
     private readonly repoRepository: RepoRepository,
     private readonly folderRepository: FolderRepository,
+    private readonly branchRepository: BranchRepository,
     private readonly gitRepoService: GitRepoService,
   ) { }
 
@@ -98,9 +100,45 @@ export class RemoteService {
   }
 
   normalizeTargetName(targetNameRaw: string) {
-    const targetName = targetNameRaw.endsWith('.git')
-      ? targetNameRaw.substring(0, -2)
+    const targetName = targetNameRaw.endsWith(RemoteConstants.gitSufix)
+      ? targetNameRaw.substring(
+        0,
+        targetNameRaw.length - RemoteConstants.gitSufix.length,
+      )
       : targetNameRaw;
     return targetName;
+  }
+
+  async compareRemotes(params: {
+    folderKey: string;
+    remoteFrom: string;
+    remoteTo: string;
+    directory: string;
+  }) {
+    const [remotes, branches] = await Promise.all([
+      this.remoteRepository.find({
+        folderKey: params.folderKey,
+        directory: params.directory,
+        name: { $in: [params.remoteFrom, params.remoteTo] },
+      }),
+      this.branchRepository.find({
+        folderKey: params.folderKey,
+        directory: params.directory,
+        remote: { $in: [params.remoteFrom, params.remoteTo] },
+      }),
+    ]);
+
+    const remoteFrom = remotes.find(({ name }) => name === params.remoteFrom);
+    const remoteTo = remotes.find(({ name }) => name === params.remoteTo);
+
+    const branchesFrom = branches
+      .filter(({ remote }) => remote === params.remoteFrom)
+      .map(({ largeName }) => largeName);
+
+    const branchesTo = branches
+      .filter(({ remote }) => remote === params.remoteTo)
+      .map(({ largeName }) => largeName);
+
+    return { params, remoteFrom, remoteTo, branchesFrom, branchesTo };
   }
 }
