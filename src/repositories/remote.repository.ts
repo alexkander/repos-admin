@@ -24,4 +24,8 @@ export class RemoteRepository {
   deleteMany(filter?: FilterQuery<Remote>) {
     return this.RemoteModel.deleteMany(filter);
   }
+
+  listByDirectory(directory: string) {
+    return this.RemoteModel.find({ directory }).lean();
+  }
 }

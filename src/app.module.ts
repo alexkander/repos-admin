@@ -18,6 +18,10 @@ import { FolderService } from './services/folder.service';
 import { GitRepoService } from './services/gitRepo.service';
 import { RemoteService } from './services/remote.service';
 import { RepoService } from './services/repo.service';
+import { GroupController } from './controllers/group.controller';
+import { Group, GroupSchema } from './schemas/group.schema';
+import { GroupRepository } from './repositories/group.repository';
+import { GroupService } from './services/group.service';
 
 @Module({
   imports: [
@@ -27,6 +31,7 @@ import { RepoService } from './services/repo.service';
       { name: Repo.name, schema: RepoSchema },
       { name: Remote.name, schema: RemoteSchema },
       { name: Branch.name, schema: BranchSchema },
+      { name: Group.name, schema: GroupSchema },
     ]),
   ],
   controllers: [
@@ -34,6 +39,7 @@ import { RepoService } from './services/repo.service';
     RepoController,
     RemoteController,
     BranchController,
+    GroupController,
   ],
   providers: [
     FolderRepository,
@@ -45,6 +51,8 @@ import { RepoService } from './services/repo.service';
     GitRepoService,
     BranchRepository,
     BranchService,
+    GroupRepository,
+    GroupService,
   ],
 })
 export class AppModule { }

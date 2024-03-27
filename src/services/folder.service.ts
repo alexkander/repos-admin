@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { FolderRepository } from '../repositories/folder.repository';
 import { configuration } from '../configuration/configuration';
-import * as path from 'path';
+import { FolderRepository } from '../repositories/folder.repository';
+import { routes } from '../utils/routes';
 
 @Injectable()
 export class FolderService {
@@ -16,7 +16,7 @@ export class FolderService {
       const [folderKey, ...forderPath] = folder.trim().split(':');
       return {
         folderKey: folderKey?.trim(),
-        forderPath: path.resolve(forderPath.join(':').trim()),
+        forderPath: routes.resolve(forderPath.join(':').trim()),
         folder,
       };
     }).filter((i) => {

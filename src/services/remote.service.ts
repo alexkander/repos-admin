@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { RemoteConstants } from 'src/constants/remote.constants';
-import { RemoteUrlType } from 'src/types/remotes.type';
+import { RemoteConstants } from '../constants/remote.constants';
+import { RemoteUrlType } from '../types/remotes.type';
 import { FolderRepository } from '../repositories/folder.repository';
 import { RemoteRepository } from '../repositories/remote.repository';
 import { RepoRepository } from '../repositories/repo.repository';

@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory, raw } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
-import { RemoteUrlType } from 'src/types/remotes.type';
+import { RemoteUrlType } from '../types/remotes.type';
 
 export type RemoteDocument = HydratedDocument<Remote>;
 

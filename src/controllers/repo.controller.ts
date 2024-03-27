@@ -1,7 +1,7 @@
 import { Controller, Get, Post } from '@nestjs/common';
 import { RepoService } from '../services/repo.service';
 
-@Controller('repository')
+@Controller('repo')
 export class RepoController {
   constructor(private readonly repoService: RepoService) {}
 
@@ -18,5 +18,10 @@ export class RepoController {
   @Post('/saveLocalRepos')
   saveLocalRepos() {
     return this.repoService.saveLocalRepos();
+  }
+
+  @Post('/countRemotes')
+  countRemotes() {
+    return this.repoService.countRemotes();
   }
 }

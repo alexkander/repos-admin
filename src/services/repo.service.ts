@@ -1,17 +1,19 @@
 import { Injectable } from '@nestjs/common';
 import * as fs from 'fs';
 import { glob } from 'glob';
-import * as path from 'path';
 import { FolderRepository } from '../repositories/folder.repository';
 import { Folder } from '../schemas/folder.schema';
 import { RepoConstants } from '../constants/repo.constants';
 import { RepoRepository } from '../repositories/repo.repository';
 import { GitRepoService } from './gitRepo.service';
+import { RemoteRepository } from '../repositories/remote.repository';
+import { routes } from '../utils/routes';
 
 @Injectable()
 export class RepoService {
   constructor(
     private readonly repoRepository: RepoRepository,
+    private readonly remoteRepository: RemoteRepository,
     private readonly folderRepository: FolderRepository,
     private readonly gitRepoService: GitRepoService,
   ) { }
@@ -47,12 +49,12 @@ export class RepoService {
     });
 
     const reposPromises = subDirectories.map(async (subDirectory) => {
-      const itemDirectory = path.resolve(directory, subDirectory);
-      const gitDirectory = path.resolve(itemDirectory, '.git');
+      const itemDirectory = routes.resolve(directory, subDirectory);
+      const gitDirectory = routes.resolve(itemDirectory, '.git');
       if (fs.existsSync(gitDirectory)) {
-        const directory = path.relative(folder.forderPath, itemDirectory);
-        const group = path.dirname(directory);
-        const localName = path.basename(directory);
+        const directory = routes.relative(folder.forderPath, itemDirectory);
+        const group = routes.dirname(directory);
+        const localName = routes.basename(directory);
         const repo = this.gitRepoService.getRepoFrom(
           folder.forderPath,
           directory,
@@ -64,6 +66,7 @@ export class RepoService {
           group,
           localName,
           valid,
+          remotes: 0,
         };
         return [data];
       } else {
@@ -80,6 +83,21 @@ export class RepoService {
     const subDirectories = await glob(RepoConstants.pattern, {
       cwd: directory,
     });
-    return subDirectories;
+    return subDirectories.map((subDir) => {
+      return subDir.split('\\').join('/');
+    });
+  }
+
+  async countRemotes() {
+    const repos = await this.repoRepository.getValidRepos();
+    const updatePromises = repos.map(async (repo) => {
+      const remotes = await this.remoteRepository.listByDirectory(
+        repo.directory,
+      );
+      repo.remotes = remotes.length;
+      return this.repoRepository.update(repo._id, repo);
+    });
+    const result = await Promise.all(updatePromises);
+    return result;
   }
 }

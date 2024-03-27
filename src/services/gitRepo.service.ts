@@ -1,14 +1,14 @@
 import { Injectable } from '@nestjs/common';
-import * as path from 'path';
 import simpleGit from 'simple-git';
-import { BranchConstants } from 'src/constants/branch.constants';
+import { BranchConstants } from '../constants/branch.constants';
+import { routes } from '../utils/routes';
 
 class GitRepo {
   private rootDirectory: string;
   private handler: ReturnType<typeof simpleGit>;
 
   constructor(folderPath: string, directory: string) {
-    this.rootDirectory = path.join(folderPath, directory);
+    this.rootDirectory = routes.join(folderPath, directory);
     this.handler = simpleGit(this.rootDirectory);
   }
 

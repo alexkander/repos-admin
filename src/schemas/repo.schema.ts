@@ -10,6 +10,7 @@ export class Repo {
   @Prop() group: string;
   @Prop() localName: string;
   @Prop() valid: boolean;
+  @Prop() remotes: number;
 }
 
 export const RepoSchema = SchemaFactory.createForClass(Repo);
