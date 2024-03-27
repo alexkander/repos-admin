@@ -1,4 +1,6 @@
 import { Injectable } from '@nestjs/common';
+import { RemoteConstants } from 'src/constants/remote.constants';
+import { RemoteUrlType } from 'src/types/remotes.type';
 import { FolderRepository } from '../repositories/folder.repository';
 import { RemoteRepository } from '../repositories/remote.repository';
 import { RepoRepository } from '../repositories/repo.repository';
@@ -55,5 +57,50 @@ export class RemoteService {
     });
     const records = Promise.all(createPromises);
     return records;
+  }
+
+  async parseRemotes() {
+    const remotes = await this.remoteRepository.find();
+    const promises = remotes.map(async ({ _id, ...remote }) => {
+      const { urlType, targetHost, targetGroup, targetName } =
+        this.parseTargetInfo(remote);
+      remote.urlType = urlType;
+      remote.targetHost = targetHost;
+      remote.targetGroup = targetGroup;
+      remote.targetName = targetName
+        ? this.normalizeTargetName(targetName)
+        : null;
+      return this.remoteRepository.update(_id, remote);
+    });
+    return await Promise.all(promises);
+  }
+
+  parseTargetInfo({ url }: { url: string }) {
+    const array = [
+      { regexp: RemoteConstants.UrlRegex.https, urlType: RemoteUrlType.HTTPS },
+      { regexp: RemoteConstants.UrlRegex.http, urlType: RemoteUrlType.HTTP },
+      { regexp: RemoteConstants.UrlRegex.ssh, urlType: RemoteUrlType.SSH },
+      { regexp: RemoteConstants.UrlRegex.git, urlType: RemoteUrlType.GIT },
+    ];
+    for (const { regexp, urlType } of array) {
+      const matches = url.match(regexp);
+      if (matches) {
+        const [, targetHost, targetGroup, targetName] = matches;
+        return { urlType, targetHost, targetGroup, targetName };
+      }
+    }
+    return {
+      urlType: RemoteUrlType.UNKNOWN,
+      targetHost: null,
+      targetGroup: null,
+      targetName: null,
+    };
+  }
+
+  normalizeTargetName(targetNameRaw: string) {
+    const targetName = targetNameRaw.endsWith('.git')
+      ? targetNameRaw.substring(0, -2)
+      : targetNameRaw;
+    return targetName;
   }
 }

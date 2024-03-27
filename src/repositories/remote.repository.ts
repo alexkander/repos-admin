@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { FilterQuery, Model } from 'mongoose';
+import { FilterQuery, Model, Types } from 'mongoose';
 import { Remote } from '../schemas/remote.schema';
 
 @Injectable()
@@ -15,6 +15,10 @@ export class RemoteRepository {
 
   async create(data: Remote) {
     return this.RemoteModel.create(data);
+  }
+
+  async update(id: Types.ObjectId, data: Remote) {
+    return this.RemoteModel.updateOne({ _id: id }, data);
   }
 
   deleteMany(filter?: FilterQuery<Remote>) {

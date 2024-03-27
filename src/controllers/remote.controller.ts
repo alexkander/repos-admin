@@ -19,4 +19,9 @@ export class RemoteController {
   saveLocalRemotes() {
     return this.remoteService.saveLocalRemotes();
   }
+
+  @Post('/parseRemotes')
+  parseRemotes() {
+    return this.remoteService.parseRemotes();
+  }
 }
