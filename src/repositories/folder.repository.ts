@@ -13,6 +13,10 @@ export class FolderRepository {
     return this.FolderModel.find(query).lean();
   }
 
+  findOneByKey(folderKey: string) {
+    return this.FolderModel.findOne({ folderKey }).lean();
+  }
+
   async create(data: Folder) {
     return this.FolderModel.create(data);
   }

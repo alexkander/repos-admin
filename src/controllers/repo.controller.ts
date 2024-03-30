@@ -3,7 +3,7 @@ import { RepoService } from '../services/repo.service';
 
 @Controller('repo')
 export class RepoController {
-  constructor(private readonly repoService: RepoService) {}
+  constructor(private readonly repoService: RepoService) { }
 
   @Get('/')
   list() {
@@ -23,5 +23,10 @@ export class RepoController {
   @Post('/countRemotes')
   countRemotes() {
     return this.repoService.countRemotes();
+  }
+
+  @Post('/gitFetchAllRemotes')
+  gitFetchAllRemotes() {
+    return this.repoService.gitFetchAllRemotes();
   }
 }

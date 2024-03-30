@@ -56,6 +56,25 @@ class GitRepo {
     });
     return branches;
   }
+
+  async fetchAllRemotes() {
+    const remotes = await this.getRemotes();
+    const fetchPromises = remotes.map(async (remote) => {
+      return this.fetchAll(remote.name);
+    });
+    const fetchResults = await Promise.allSettled(fetchPromises);
+    const fetchResultsMap = remotes.map((remote, idx) => {
+      return {
+        remote: remote.name,
+        result: fetchResults[idx],
+      };
+    });
+    return fetchResultsMap;
+  }
+
+  fetchAll(remote: string) {
+    return this.handler.fetch(remote, ['--all', '--tags', '-v']);
+  }
 }
 
 @Injectable()

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { BranchRepository } from 'src/repositories/branch.repository';
 import { RemoteConstants } from '../constants/remote.constants';
+import { BranchRepository } from '../repositories/branch.repository';
 import { FolderRepository } from '../repositories/folder.repository';
 import { RemoteRepository } from '../repositories/remote.repository';
 import { RepoRepository } from '../repositories/repo.repository';
