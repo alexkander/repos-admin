@@ -17,7 +17,7 @@ export class FolderRepository {
     return this.FolderModel.findOne({ folderKey }).lean();
   }
 
-  async create(data: Folder) {
+  async create(data: Omit<Folder, '_id'>) {
     return this.FolderModel.create(data);
   }
 

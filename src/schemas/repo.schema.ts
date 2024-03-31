@@ -1,10 +1,11 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { HydratedDocument } from 'mongoose';
+import { HydratedDocument, Types } from 'mongoose';
 
 export type RepoDocument = HydratedDocument<Repo>;
 
 @Schema()
 export class Repo {
+  @Prop() _id: Types.ObjectId;
   @Prop() folderKey: string;
   @Prop() directory: string;
   @Prop() group: string;

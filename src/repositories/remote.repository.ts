@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { FilterQuery, Model, Types } from 'mongoose';
+import { HostGroupFilterQuery, RepoFilterQuery } from 'src/types/remotes.type';
 import { Remote } from '../schemas/remote.schema';
 
 @Injectable()
@@ -13,11 +14,27 @@ export class RemoteRepository {
     return this.RemoteModel.find(query).lean();
   }
 
-  async create(data: Remote) {
+  findById(id: string) {
+    return this.RemoteModel.findById(id).lean();
+  }
+
+  findSiblings(id: string, { folderKey, directory }: RepoFilterQuery) {
+    return this.RemoteModel.find({
+      id: { $ne: id },
+      folderKey,
+      directory,
+    }).lean();
+  }
+
+  findByHostGroup({ targetHost, targetGroup }: HostGroupFilterQuery) {
+    return this.RemoteModel.find({ targetHost, targetGroup }).lean();
+  }
+
+  async create(data: Omit<Remote, '_id'>) {
     return this.RemoteModel.create(data);
   }
 
-  async update(id: Types.ObjectId, data: Remote) {
+  async update(id: Types.ObjectId, data: Omit<Remote, '_id'>) {
     return this.RemoteModel.updateOne({ _id: id }, data);
   }
 

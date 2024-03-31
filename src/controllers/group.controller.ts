@@ -3,20 +3,20 @@ import { GroupService } from '../services/group.service';
 
 @Controller('group')
 export class GroupController {
-  constructor(private readonly remoteService: GroupService) { }
+  constructor(private readonly groupService: GroupService) { }
 
   @Get('/')
   list() {
-    return this.remoteService.list();
+    return this.groupService.list();
   }
 
   @Get('/listGroupsFromRemotes')
   listGroupsFromRemotes() {
-    return this.remoteService.listGroupsFromRemotes();
+    return this.groupService.listGroupsFromRemotes();
   }
 
   @Post('/saveGroupsFromRemote')
   saveGroupsFromRemote() {
-    return this.remoteService.saveGroupsFromRemote();
+    return this.groupService.saveGroupsFromRemote();
   }
 }

@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { Remote } from 'src/schemas/remote.schema';
 import { RemoteConstants } from '../constants/remote.constants';
 import { BranchRepository } from '../repositories/branch.repository';
 import { FolderRepository } from '../repositories/folder.repository';
@@ -6,6 +7,7 @@ import { RemoteRepository } from '../repositories/remote.repository';
 import { RepoRepository } from '../repositories/repo.repository';
 import { RemoteUrlType } from '../types/remotes.type';
 import { GitRepoService } from './gitRepo.service';
+import { Branch } from 'src/schemas/branch.schema';
 
 @Injectable()
 export class RemoteService {
@@ -140,5 +142,54 @@ export class RemoteService {
       .map(({ largeName }) => largeName);
 
     return { params, remoteFrom, remoteTo, branchesFrom, branchesTo };
+  }
+
+  async getNotSynchedBranches(remote: Remote) {
+    const branches = await this.branchRepository.findRepoBranches({
+      folderKey: remote.folderKey,
+      directory: remote.directory,
+    });
+    const { current: currentBranches, siblings: siblingsBranches } =
+      branches.reduce<{ current: Branch[], siblings: Branch[] }>(
+        (acc, branch) => {
+          const key = branch.remote === remote.name ? 'current' : 'siblings';
+          return {
+            ...acc,
+            [key]: [...acc[key], branch],
+          };
+        },
+        { current: [], siblings: [] },
+      );
+    const notSynchedBranches = currentBranches
+      .filter((branch) => {
+        const hasEqualSibling = !siblingsBranches.find(
+          (b) => b.shortName === branch.shortName && b.commit === branch.commit,
+        );
+        return hasEqualSibling;
+      })
+      .map((branch) => {
+        return branch.shortName;
+      });
+    return notSynchedBranches;
+  }
+
+  async getNotSynchedRemotes(targetHost: string, targetGroup: string) {
+    const remotes = await this.remoteRepository.findByHostGroup({
+      targetHost,
+      targetGroup,
+    });
+    const promises = remotes
+    .map(async (remote) => {
+      const notSynchedBranches = await this.getNotSynchedBranches(remote);
+      return {
+        folderKey: remote.folderKey,
+        directory: remote.directory,
+        remote: remote.name,
+        url: remote.url,
+        notSynchedBranches,
+      };
+    });
+    const results = await Promise.all(promises);
+    return results.filter((b) => b.notSynchedBranches.length);
   }
 }

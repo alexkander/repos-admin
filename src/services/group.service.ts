@@ -16,16 +16,19 @@ export class GroupService {
 
   async listGroupsFromRemotes() {
     const remotes = await this.remoteRepository.find();
-    const groups = remotes.reduce<Record<string, Group>>((acc, remote) => {
-      const key = `${remote.targetHost}/${remote.targetGroup}`;
-      return {
-        ...acc,
-        [key]: {
-          host: remote.targetHost,
-          group: remote.targetGroup,
-        },
-      };
-    }, {});
+    const groups = remotes.reduce<Record<string, Omit<Group, '_id'>>>(
+      (acc, remote) => {
+        const key = `${remote.targetHost}/${remote.targetGroup}`;
+        return {
+          ...acc,
+          [key]: {
+            host: remote.targetHost,
+            group: remote.targetGroup,
+          },
+        };
+      },
+      {},
+    );
     return Object.values(groups);
   }
 

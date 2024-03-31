@@ -13,7 +13,7 @@ export class FetchLogRepository {
     return this.FetchLogModel.find(query).lean();
   }
 
-  async create(data: FetchLog) {
+  async create(data: Omit<FetchLog, '_id'>) {
     return this.FetchLogModel.create(data);
   }
 

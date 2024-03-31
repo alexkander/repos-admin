@@ -1,6 +1,6 @@
-import { Controller, Get, Post, Req } from '@nestjs/common';
-import { RemoteService } from '../services/remote.service';
+import { Controller, Get, Param, Post, Req } from '@nestjs/common';
 import { Request } from 'express';
+import { RemoteService } from '../services/remote.service';
 
 @Controller('remote')
 export class RemoteController {
@@ -37,5 +37,13 @@ export class RemoteController {
       remoteTo,
       directory,
     });
+  }
+
+  @Get('/:host/:group/notSynchedRemotes')
+  getNotSynchedRemotes(
+    @Param('host') host: string,
+    @Param('group') group: string,
+  ) {
+    return this.remoteService.getNotSynchedRemotes(host, group);
   }
 }
