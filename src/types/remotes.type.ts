@@ -27,6 +27,13 @@ export type RemoteFetchStatus = {
   fetchResult: Record<string, any>;
 };
 
+export type RemoteTargetInfo = {
+  urlType: RemoteUrlType;
+  targetHost: string | null;
+  targetGroup: string;
+  targetName: string;
+};
+
 export type HostGroupFilterQuery = {
   targetHost: string;
   targetGroup: string;

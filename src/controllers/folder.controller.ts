@@ -5,11 +5,6 @@ import { FolderService } from '../services/folder.service';
 export class FolderController {
   constructor(private readonly folderService: FolderService) { }
 
-  @Get('/')
-  list() {
-    return this.folderService.list();
-  }
-
   @Get('/listEnvFolder')
   listEnvFolder() {
     return this.folderService.listEnvFolder();

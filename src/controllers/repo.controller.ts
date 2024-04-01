@@ -5,11 +5,6 @@ import { RepoService } from '../services/repo.service';
 export class RepoController {
   constructor(private readonly repoService: RepoService) { }
 
-  @Get('/')
-  list() {
-    return this.repoService.list();
-  }
-
   @Get('/listLocalRepos')
   listLocalRepos() {
     return this.repoService.listLocalRepos();

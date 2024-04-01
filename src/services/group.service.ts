@@ -10,12 +10,8 @@ export class GroupService {
     private readonly remoteRepository: RemoteRepository,
   ) { }
 
-  list() {
-    return this.groupRepository.find();
-  }
-
   async listGroupsFromRemotes() {
-    const remotes = await this.remoteRepository.find();
+    const remotes = await this.remoteRepository.all();
     const groups = remotes.reduce<Record<string, Group>>((acc, remote) => {
       const key = `${remote.targetHost}/${remote.targetGroup}`;
       return {
@@ -30,7 +26,7 @@ export class GroupService {
   }
 
   async saveGroupsFromRemote() {
-    await this.groupRepository.deleteMany();
+    await this.groupRepository.truncate();
     const localRepos = await this.listGroupsFromRemotes();
     const createPromises = localRepos.map((record) => {
       return this.groupRepository.create(record);

@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { Remote } from 'src/schemas/remote.schema';
-import { RemoteUrlType } from 'src/types/remotes.type';
 import { RemoteConstants } from '../constants/remote.constants';
 import { FolderRepository } from '../repositories/folder.repository';
 import { RemoteRepository } from '../repositories/remote.repository';
 import { RepoRepository } from '../repositories/repo.repository';
+import { Remote } from '../schemas/remote.schema';
+import { RemoteTargetInfo, RemoteUrlType } from '../types/remotes.type';
 import { GitRepoService } from './gitRepo.service';
 
 @Injectable()
@@ -16,14 +16,10 @@ export class RemoteService {
     private readonly gitRepoService: GitRepoService,
   ) { }
 
-  list() {
-    return this.remoteRepository.find();
-  }
-
   async listLocalRemotes() {
-    const folders = await this.folderRepository.find();
+    const folders = await this.folderRepository.all();
     const remotesPromises = folders.map(async (folder) => {
-      const repositories = await this.repoRepository.getValidReposByFolderKey(
+      const repositories = await this.repoRepository.findValidReposByFolderKey(
         folder.folderKey,
       );
       const remotesPromises = repositories.map(async (repository) => {
@@ -51,7 +47,7 @@ export class RemoteService {
   }
 
   async saveLocalRemotes() {
-    await this.remoteRepository.deleteMany();
+    await this.remoteRepository.truncate();
     const localRemotes = await this.listLocalRemotes();
     const createPromises = localRemotes.map((remote) => {
       return this.remoteRepository.create(remote);
@@ -61,17 +57,17 @@ export class RemoteService {
   }
 
   async parseRemotes() {
-    const remotes = await this.remoteRepository.find();
+    const remotes = await this.remoteRepository.all();
     const promises = remotes.map(async ({ _id, ...remote }) => {
       const { urlType, targetHost, targetGroup, targetName } =
         this.parseTargetInfo(remote);
-      remote.urlType = urlType;
-      remote.targetHost = targetHost;
-      remote.targetGroup = targetGroup;
-      remote.targetName = targetName
-        ? this.normalizeTargetName(targetName)
-        : null;
-      return this.remoteRepository.update(_id, remote);
+      const data: RemoteTargetInfo = {
+        urlType,
+        targetGroup,
+        targetHost,
+        targetName: targetName ? this.normalizeTargetName(targetName) : null,
+      };
+      return this.remoteRepository.updateTargetInfoById(_id, data);
     });
     return await Promise.all(promises);
   }

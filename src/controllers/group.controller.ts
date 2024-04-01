@@ -5,11 +5,6 @@ import { GroupService } from '../services/group.service';
 export class GroupController {
   constructor(private readonly groupService: GroupService) { }
 
-  @Get('/')
-  list() {
-    return this.groupService.list();
-  }
-
   @Get('/listGroupsFromRemotes')
   listGroupsFromRemotes() {
     return this.groupService.listGroupsFromRemotes();

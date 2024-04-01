@@ -13,9 +13,7 @@ export class Remote {
   @Prop() rare: boolean;
   @Prop(raw({})) refs: Record<string, any>;
   @Prop() urlType?: RemoteUrlType;
-  @Prop() sshUrl?: string;
   @Prop() targetHost?: string | null;
-  @Prop() targetUser?: string;
   @Prop() targetGroup?: string;
   @Prop() targetName?: string;
   @Prop() fetchStatus?: FetchLogStatusType;

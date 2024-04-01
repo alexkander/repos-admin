@@ -1,6 +1,6 @@
 import simpleGit from 'simple-git';
-import { routes } from 'src/utils/routes';
 import { BranchConstants } from '../constants/branch.constants';
+import { routes } from '../utils/routes';
 import { GitRemoteType } from './gitRepo.types';
 
 export class GitRepo {

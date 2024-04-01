@@ -5,11 +5,6 @@ import { RemoteService } from '../services/remote.service';
 export class RemoteController {
   constructor(private readonly remoteService: RemoteService) { }
 
-  @Get('/')
-  list() {
-    return this.remoteService.list();
-  }
-
   @Get('/listLocalRemotes')
   listLocalRemotes() {
     return this.remoteService.listLocalRemotes();

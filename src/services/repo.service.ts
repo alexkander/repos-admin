@@ -1,14 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import * as fs from 'fs';
 import { glob } from 'glob';
-import { RepoConstants } from 'src/constants/repo.constants';
-import { Repo } from 'src/schemas/repo.schema';
-import { GitRepo } from 'src/types/gitRepo.class';
-import { GitRemoteType } from 'src/types/gitRepo.types';
+import { RepoConstants } from '../constants/repo.constants';
 import { FolderRepository } from '../repositories/folder.repository';
 import { RemoteRepository } from '../repositories/remote.repository';
 import { RepoRepository } from '../repositories/repo.repository';
 import { Folder } from '../schemas/folder.schema';
+import { Repo } from '../schemas/repo.schema';
+import { GitRepo } from '../types/gitRepo.class';
+import { GitRemoteType } from '../types/gitRepo.types';
 import {
   FetchLogStatusType,
   RemoteFetchStatus,
@@ -28,12 +28,8 @@ export class RepoService {
     private readonly gitRepoService: GitRepoService,
   ) { }
 
-  list() {
-    return this.repoRepository.find();
-  }
-
   async saveLocalRepos() {
-    await this.repoRepository.deleteMany();
+    await this.repoRepository.truncate();
     const localRepos = await this.listLocalRepos();
     const createPromises = localRepos.map((repo) => {
       return this.repoRepository.create(repo);
@@ -43,7 +39,7 @@ export class RepoService {
   }
 
   async listLocalRepos() {
-    const directories = await this.folderRepository.find();
+    const directories = await this.folderRepository.all();
     const allFilesPromises = directories.map((folder) => {
       return this.getReposInDirectory(folder.folderPath, folder);
     });
@@ -98,13 +94,14 @@ export class RepoService {
   }
 
   async countRemotes() {
-    const repos = await this.repoRepository.getValidRepos();
+    const repos = await this.repoRepository.findValidRepos();
     const updatePromises = repos.map(async (repo) => {
       const remotes = await this.remoteRepository.findByDirectory(
         repo.directory,
       );
-      repo.remotes = remotes.length;
-      return this.repoRepository.update(repo._id, repo);
+      return this.repoRepository.updateRemotesById(repo._id, {
+        remotes: remotes.length,
+      });
     });
     const result = await Promise.all(updatePromises);
     return result;
@@ -112,7 +109,7 @@ export class RepoService {
 
   async fetchAllRepos(ignoreFetched: boolean) {
     const getFolder = this.folderRepository.buildCache();
-    const repos = await this.repoRepository.getValidRepos();
+    const repos = await this.repoRepository.findValidRepos();
     const results = [];
 
     this.logger.doLog(`fetching ${repos.length} repos`);

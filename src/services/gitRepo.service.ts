@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { GitRepo } from 'src/types/gitRepo.class';
+import { GitRepo } from '../types/gitRepo.class';
 
 @Injectable()
 export class GitRepoService {

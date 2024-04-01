@@ -7,10 +7,6 @@ import { routes } from '../utils/routes';
 export class FolderService {
   constructor(private readonly folderRepository: FolderRepository) { }
 
-  list() {
-    return this.folderRepository.find();
-  }
-
   listEnvFolder() {
     return configuration.FOLDERS.map((folder) => {
       const [folderKey, ...folderPath] = folder.trim().split(':');
@@ -29,7 +25,7 @@ export class FolderService {
   }
 
   async saveEnvFolders() {
-    await this.folderRepository.deleteMany();
+    await this.folderRepository.truncate();
     const localRepos = await this.listEnvFolder();
     const createPromises = localRepos.map((repo) => {
       return this.folderRepository.create(repo);

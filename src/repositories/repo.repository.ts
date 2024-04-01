@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { FilterQuery, Model, Types } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { Repo } from '../schemas/repo.schema';
+import { RepoRemotesInfo } from '../types/repos.types';
 
 @Injectable()
 export class RepoRepository {
@@ -9,15 +10,11 @@ export class RepoRepository {
     @InjectModel(Repo.name) private readonly RepoModel: Model<Repo>,
   ) { }
 
-  find(query?: FilterQuery<Repo>) {
-    return this.RepoModel.find(query).lean();
-  }
-
-  getValidRepos() {
+  findValidRepos() {
     return this.RepoModel.find({ valid: true }).lean();
   }
 
-  getValidReposByFolderKey(folderKey: string) {
+  findValidReposByFolderKey(folderKey: string) {
     return this.RepoModel.find({ folderKey, valid: true }).lean();
   }
 
@@ -25,11 +22,11 @@ export class RepoRepository {
     return this.RepoModel.create(data);
   }
 
-  async update(id: Types.ObjectId, data: Repo) {
+  async updateRemotesById(id: Types.ObjectId, data: RepoRemotesInfo) {
     return this.RepoModel.updateOne({ _id: id }, data);
   }
 
-  deleteMany(filter?: FilterQuery<Repo>) {
-    return this.RepoModel.deleteMany(filter);
+  truncate() {
+    return this.RepoModel.deleteMany();
   }
 }
