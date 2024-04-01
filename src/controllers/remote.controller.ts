@@ -26,7 +26,7 @@ export class RemoteController {
   }
 
   @Get('/:host/:group/remotesLonelyBranchesByGroup')
-  getremotesLonelyBranchesByGroup(
+  getRemotesLonelyBranchesByGroup(
     @Param('host') host: string,
     @Param('group') group: string,
   ) {

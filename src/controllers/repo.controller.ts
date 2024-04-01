@@ -1,4 +1,4 @@
-import { Controller, Get, Post } from '@nestjs/common';
+import { Controller, Get, Post, Query } from '@nestjs/common';
 import { RepoService } from '../services/repo.service';
 
 @Controller('repo')
@@ -26,7 +26,7 @@ export class RepoController {
   }
 
   @Post('/gitFetchAllRemotes')
-  gitFetchAllRemotes() {
-    return this.repoService.gitFetchAllRemotes();
+  gitFetchAllRemotes(@Query('all') all?: string) {
+    return this.repoService.fetchAllRepos(all !== 'yes');
   }
 }

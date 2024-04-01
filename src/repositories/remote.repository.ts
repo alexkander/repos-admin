@@ -14,8 +14,8 @@ export class RemoteRepository {
     return this.RemoteModel.find(query).lean();
   }
 
-  findById(id: string) {
-    return this.RemoteModel.findById(id).lean();
+  findOneInRepoByName(filter: RemoteFilterQuery) {
+    return this.RemoteModel.findOne(filter).lean();
   }
 
   findSiblings(id: string, { folderKey, directory }: RepoFilterQuery) {

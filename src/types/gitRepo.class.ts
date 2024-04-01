@@ -1,6 +1,7 @@
 import simpleGit from 'simple-git';
-import { BranchConstants } from '../constants/branch.constants';
 import { routes } from 'src/utils/routes';
+import { BranchConstants } from '../constants/branch.constants';
+import { GitRemoteType } from './gitRepo.types';
 
 export class GitRepo {
   private rootDirectory: string;
@@ -19,12 +20,13 @@ export class GitRepo {
     const remotesData = await this.handler.getRemotes(true);
     const remotes = remotesData.map((item) => {
       const rare = item.refs.fetch !== item.refs.push;
-      return {
+      const result: GitRemoteType = {
         name: item.name,
         url: item.refs.fetch,
         refs: item.refs,
         rare,
       };
+      return result;
     });
     return remotes;
   }
