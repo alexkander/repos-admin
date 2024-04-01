@@ -5,9 +5,8 @@ import { BranchRepository } from '../repositories/branch.repository';
 import { FolderRepository } from '../repositories/folder.repository';
 import { RemoteRepository } from '../repositories/remote.repository';
 import { RepoRepository } from '../repositories/repo.repository';
-import { RemoteUrlType } from '../types/remotes.type';
 import { GitRepoService } from './gitRepo.service';
-import { Branch } from 'src/schemas/branch.schema';
+import { RemoteUrlType } from 'src/types/remotes.type';
 
 @Injectable()
 export class RemoteService {
@@ -144,52 +143,73 @@ export class RemoteService {
     return { params, remoteFrom, remoteTo, branchesFrom, branchesTo };
   }
 
-  async getNotSynchedBranches(remote: Remote) {
-    const branches = await this.branchRepository.findRepoBranches({
-      folderKey: remote.folderKey,
-      directory: remote.directory,
-    });
-    const { current: currentBranches, siblings: siblingsBranches } =
-      branches.reduce<{ current: Branch[], siblings: Branch[] }>(
-        (acc, branch) => {
-          const key = branch.remote === remote.name ? 'current' : 'siblings';
-          return {
-            ...acc,
-            [key]: [...acc[key], branch],
-          };
-        },
-        { current: [], siblings: [] },
-      );
-    const notSynchedBranches = currentBranches
-      .filter((branch) => {
-        const hasEqualSibling = !siblingsBranches.find(
-          (b) => b.shortName === branch.shortName && b.commit === branch.commit,
-        );
-        return hasEqualSibling;
-      })
-      .map((branch) => {
-        return branch.shortName;
-      });
-    return notSynchedBranches;
-  }
-
   async getNotSynchedRemotes(targetHost: string, targetGroup: string) {
     const remotes = await this.remoteRepository.findByHostGroup({
       targetHost,
       targetGroup,
     });
-    const promises = remotes
-    .map(async (remote) => {
-      const notSynchedBranches = await this.getNotSynchedBranches(remote);
+
+    const resultsRemotesPromises = remotes.map(async (remote) => {
+      const summaryBranches = await this.getCompareSummaryBranches(remote);
+      const noDescendantsBranches = summaryBranches.filter(
+        (b) => !b.descendants.length,
+      );
       return {
         folderKey: remote.folderKey,
         directory: remote.directory,
         remote: remote.name,
         url: remote.url,
-        notSynchedBranches,
+        summaryBranches,
+        noDescendantsBranches,
       };
     });
-    const results = await Promise.all(promises);
-    return results.filter((b) => b.notSynchedBranches.length);
+
+    const groupRemotes = await Promise.all(resultsRemotesPromises);
+    const notSynchedRemotes = groupRemotes.filter(
+      (b) => b.noDescendantsBranches.length,
+    );
+
+    return {
+      resultRemotesCount: groupRemotes.length,
+      filterRemotesCount: notSynchedRemotes.length,
+      filterRemotes: notSynchedRemotes,
+    };
+  }
+
+  async getCompareSummaryBranches(remote: Remote) {
+    const folder = await this.folderRepository.findOneByKey(remote.folderKey);
+    const gitRepo = this.gitRepoService.getRepoFrom(
+      folder.forderPath,
+      remote.directory,
+    );
+    const branches = await gitRepo.getBranches();
+    const remoteBranches = branches.filter((b) => b.remote === remote.name);
+    const otherBranches = branches.filter((b) => b.remote !== remote.name);
+
+    const resultsPromises = remoteBranches.map(async (branch) => {
+      const sameNameBranchesPromises = otherBranches
+        .filter((b) => b.shortName === branch.shortName)
+        .map(async (b) => {
+          return {
+            branch: b.shortName,
+            remote: b.remote,
+            commit: b.commit,
+            isDescendant: await gitRepo.isDescendent(b.commit, branch.commit),
+          };
+        });
+
+      const sameNameBranches = await Promise.all(sameNameBranchesPromises);
+      const descendants = sameNameBranches.filter((b) => b.isDescendant);
+
+      return {
+        branch: branch.shortName,
+        commit: branch.commit,
+        descendants,
+      };
+    });
+
+    const results = await Promise.all(resultsPromises);
+
+    return results;
   }
 }
