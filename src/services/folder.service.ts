@@ -13,10 +13,10 @@ export class FolderService {
 
   listEnvFolder() {
     return configuration.FOLDERS.map((folder) => {
-      const [folderKey, ...forderPath] = folder.trim().split(':');
+      const [folderKey, ...folderPath] = folder.trim().split(':');
       return {
         folderKey: folderKey?.trim(),
-        forderPath: routes.resolve(forderPath.join(':').trim()),
+        folderPath: routes.resolve(folderPath.join(':').trim()),
         folder,
       };
     }).filter((i) => {

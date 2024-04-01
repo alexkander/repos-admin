@@ -1,12 +1,11 @@
 import { Prop, Schema, SchemaFactory, raw } from '@nestjs/mongoose';
-import { HydratedDocument, Types } from 'mongoose';
-import { RemoteUrlType } from '../types/remotes.type';
+import { HydratedDocument } from 'mongoose';
+import { FetchLogStatusType, RemoteUrlType } from '../types/remotes.type';
 
 export type RemoteDocument = HydratedDocument<Remote>;
 
 @Schema()
 export class Remote {
-  @Prop() _id: Types.ObjectId;
   @Prop() folderKey: string;
   @Prop() directory: string;
   @Prop() name: string;
@@ -19,6 +18,8 @@ export class Remote {
   @Prop() targetUser?: string;
   @Prop() targetGroup?: string;
   @Prop() targetName?: string;
+  @Prop() fetchStatus?: FetchLogStatusType;
+  @Prop(raw({})) fetchResult?: Record<string, any>;
 }
 
 export const RemoteSchema = SchemaFactory.createForClass(Remote);

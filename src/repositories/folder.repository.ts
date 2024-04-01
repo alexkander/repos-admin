@@ -17,11 +17,23 @@ export class FolderRepository {
     return this.FolderModel.findOne({ folderKey }).lean();
   }
 
-  async create(data: Omit<Folder, '_id'>) {
+  async create(data: Folder) {
     return this.FolderModel.create(data);
   }
 
   deleteMany(filter?: FilterQuery<Folder>) {
     return this.FolderModel.deleteMany(filter);
+  }
+
+  buildCache() {
+    const cache: Record<string, Folder> = {};
+    return async (key: string) => {
+      if (cache[key]) {
+        return cache[key];
+      }
+      const folder = await this.findOneByKey(key);
+      cache[key] = folder;
+      return cache[key];
+    };
   }
 }

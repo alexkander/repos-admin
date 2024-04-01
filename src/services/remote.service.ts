@@ -1,12 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { Remote } from 'src/schemas/remote.schema';
+import { RemoteUrlType } from 'src/types/remotes.type';
 import { RemoteConstants } from '../constants/remote.constants';
-import { BranchRepository } from '../repositories/branch.repository';
 import { FolderRepository } from '../repositories/folder.repository';
 import { RemoteRepository } from '../repositories/remote.repository';
 import { RepoRepository } from '../repositories/repo.repository';
 import { GitRepoService } from './gitRepo.service';
-import { RemoteUrlType } from 'src/types/remotes.type';
 
 @Injectable()
 export class RemoteService {
@@ -14,7 +13,6 @@ export class RemoteService {
     private readonly remoteRepository: RemoteRepository,
     private readonly repoRepository: RepoRepository,
     private readonly folderRepository: FolderRepository,
-    private readonly branchRepository: BranchRepository,
     private readonly gitRepoService: GitRepoService,
   ) { }
 
@@ -30,7 +28,7 @@ export class RemoteService {
       );
       const remotesPromises = repositories.map(async (repository) => {
         const repo = this.gitRepoService.getRepoFrom(
-          folder.forderPath,
+          folder.folderPath,
           repository.directory,
         );
         const remotesData = await repo.getRemotes();
@@ -110,40 +108,7 @@ export class RemoteService {
     return targetName;
   }
 
-  async compareRemotes(params: {
-    folderKey: string;
-    remoteFrom: string;
-    remoteTo: string;
-    directory: string;
-  }) {
-    const [remotes, branches] = await Promise.all([
-      this.remoteRepository.find({
-        folderKey: params.folderKey,
-        directory: params.directory,
-        name: { $in: [params.remoteFrom, params.remoteTo] },
-      }),
-      this.branchRepository.find({
-        folderKey: params.folderKey,
-        directory: params.directory,
-        remote: { $in: [params.remoteFrom, params.remoteTo] },
-      }),
-    ]);
-
-    const remoteFrom = remotes.find(({ name }) => name === params.remoteFrom);
-    const remoteTo = remotes.find(({ name }) => name === params.remoteTo);
-
-    const branchesFrom = branches
-      .filter(({ remote }) => remote === params.remoteFrom)
-      .map(({ largeName }) => largeName);
-
-    const branchesTo = branches
-      .filter(({ remote }) => remote === params.remoteTo)
-      .map(({ largeName }) => largeName);
-
-    return { params, remoteFrom, remoteTo, branchesFrom, branchesTo };
-  }
-
-  async getNotSynchedRemotes(targetHost: string, targetGroup: string) {
+  async remotesLonelyBranchesByGroup(targetHost: string, targetGroup: string) {
     const remotes = await this.remoteRepository.findByHostGroup({
       targetHost,
       targetGroup,
@@ -179,7 +144,7 @@ export class RemoteService {
   async getCompareSummaryBranches(remote: Remote) {
     const folder = await this.folderRepository.findOneByKey(remote.folderKey);
     const gitRepo = this.gitRepoService.getRepoFrom(
-      folder.forderPath,
+      folder.folderPath,
       remote.directory,
     );
     const branches = await gitRepo.getBranches();

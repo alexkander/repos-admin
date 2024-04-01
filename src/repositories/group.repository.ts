@@ -13,7 +13,7 @@ export class GroupRepository {
     return this.GroupModel.find(query).lean();
   }
 
-  async create(data: Omit<Group, '_id'>) {
+  async create(data: Group) {
     return this.GroupModel.create(data);
   }
 

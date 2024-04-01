@@ -1,5 +1,4 @@
-import { Controller, Get, Param, Post, Req } from '@nestjs/common';
-import { Request } from 'express';
+import { Controller, Get, Param, Post } from '@nestjs/common';
 import { RemoteService } from '../services/remote.service';
 
 @Controller('remote')
@@ -26,24 +25,11 @@ export class RemoteController {
     return this.remoteService.parseRemotes();
   }
 
-  @Get('/compareRemotes/:folderKey/:remotes/*')
-  compareRemotes(@Req() req: Request) {
-    const { folderKey, remotes } = req.params;
-    const [remoteFrom, remoteTo] = remotes.split(':');
-    const directory = req.params['0'];
-    return this.remoteService.compareRemotes({
-      folderKey,
-      remoteFrom,
-      remoteTo,
-      directory,
-    });
-  }
-
-  @Get('/:host/:group/notSynchedRemotes')
-  getNotSynchedRemotes(
+  @Get('/:host/:group/remotesLonelyBranchesByGroup')
+  getremotesLonelyBranchesByGroup(
     @Param('host') host: string,
     @Param('group') group: string,
   ) {
-    return this.remoteService.getNotSynchedRemotes(host, group);
+    return this.remoteService.remotesLonelyBranchesByGroup(host, group);
   }
 }

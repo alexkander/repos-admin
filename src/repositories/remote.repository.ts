@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { FilterQuery, Model, Types } from 'mongoose';
-import { HostGroupFilterQuery, RepoFilterQuery } from 'src/types/remotes.type';
+import { HostGroupFilterQuery, RemoteFetchStatus, RemoteFilterQuery, RepoFilterQuery } from 'src/types/remotes.type';
 import { Remote } from '../schemas/remote.schema';
 
 @Injectable()
@@ -30,19 +30,23 @@ export class RemoteRepository {
     return this.RemoteModel.find({ targetHost, targetGroup }).lean();
   }
 
-  async create(data: Omit<Remote, '_id'>) {
+  async create(data: Remote) {
     return this.RemoteModel.create(data);
   }
 
-  async update(id: Types.ObjectId, data: Omit<Remote, '_id'>) {
+  async update(id: Types.ObjectId, data: Remote) {
     return this.RemoteModel.updateOne({ _id: id }, data);
+  }
+
+  async updateFetchInfo(filter: RemoteFilterQuery, data: RemoteFetchStatus) {
+    return this.RemoteModel.updateMany(filter, data);
   }
 
   deleteMany(filter?: FilterQuery<Remote>) {
     return this.RemoteModel.deleteMany(filter);
   }
 
-  listByDirectory(directory: string) {
+  findByDirectory(directory: string) {
     return this.RemoteModel.find({ directory }).lean();
   }
 }

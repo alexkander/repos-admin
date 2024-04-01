@@ -1,14 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import * as fs from 'fs';
 import { glob } from 'glob';
-import { FetchLogStatusType } from 'src/types/fetchLog.type';
-import { RepoConstants } from '../constants/repo.constants';
-import { FetchLogRepository } from '../repositories/fetchLog.repository';
+import { RepoConstants } from 'src/constants/repo.constants';
 import { FolderRepository } from '../repositories/folder.repository';
 import { RemoteRepository } from '../repositories/remote.repository';
 import { RepoRepository } from '../repositories/repo.repository';
-import { FetchLog } from '../schemas/fetchLog.schema';
 import { Folder } from '../schemas/folder.schema';
+import {
+  FetchLogStatusType,
+  RemoteFetchStatus,
+  RemoteFilterQuery,
+} from '../types/remotes.type';
 import { routes } from '../utils/routes';
 import { GitRepoService } from './gitRepo.service';
 import { LoggerService } from './logger.service';
@@ -21,7 +23,6 @@ export class RepoService {
     private readonly remoteRepository: RemoteRepository,
     private readonly folderRepository: FolderRepository,
     private readonly gitRepoService: GitRepoService,
-    private readonly fetchLogRepoService: FetchLogRepository,
   ) { }
 
   list() {
@@ -41,7 +42,7 @@ export class RepoService {
   async listLocalRepos() {
     const directories = await this.folderRepository.find();
     const allFilesPromises = directories.map((folder) => {
-      return this.getReposInDirectory(folder.forderPath, folder);
+      return this.getReposInDirectory(folder.folderPath, folder);
     });
     const allFiles = (await Promise.all(allFilesPromises)).flatMap((f) => f);
 
@@ -57,27 +58,26 @@ export class RepoService {
     const reposPromises = subDirectories.map(async (subDirectory) => {
       const itemDirectory = routes.resolve(directory, subDirectory);
       const gitDirectory = routes.resolve(itemDirectory, '.git');
-      if (fs.existsSync(gitDirectory)) {
-        const directory = routes.relative(folder.forderPath, itemDirectory);
-        const group = routes.dirname(directory);
-        const localName = routes.basename(directory);
-        const repo = this.gitRepoService.getRepoFrom(
-          folder.forderPath,
-          directory,
-        );
-        const valid = await repo.isRepo();
-        const data = {
-          folderKey: folder.folderKey,
-          directory,
-          group,
-          localName,
-          valid,
-          remotes: 0,
-        };
-        return [data];
-      } else {
+      if (!fs.existsSync(gitDirectory)) {
         return this.getReposInDirectory(itemDirectory, folder);
       }
+      const repoDirectory = routes.relative(folder.folderPath, itemDirectory);
+      const group = routes.dirname(repoDirectory);
+      const localName = routes.basename(repoDirectory);
+      const repo = this.gitRepoService.getRepoFrom(
+        folder.folderPath,
+        repoDirectory,
+      );
+      const valid = await repo.isRepo();
+      const data = {
+        folderKey: folder.folderKey,
+        directory: repoDirectory,
+        group,
+        localName,
+        valid,
+        remotes: 0,
+      };
+      return [data];
     });
 
     const repos = (await Promise.all(reposPromises)).flatMap((f) => f);
@@ -97,7 +97,7 @@ export class RepoService {
   async countRemotes() {
     const repos = await this.repoRepository.getValidRepos();
     const updatePromises = repos.map(async (repo) => {
-      const remotes = await this.remoteRepository.listByDirectory(
+      const remotes = await this.remoteRepository.findByDirectory(
         repo.directory,
       );
       repo.remotes = remotes.length;
@@ -108,13 +108,8 @@ export class RepoService {
   }
 
   async gitFetchAllRemotes() {
-    const cache: Record<string, string> = {};
-    const getFolder = async (folderKey: string) => {
-      if (cache[folderKey]) return cache[folderKey];
-      const folder = await this.folderRepository.findOneByKey(folderKey);
-      cache[folder.folderKey] = folder.forderPath;
-      return cache[folderKey] || '';
-    };
+    const getFolder = this.folderRepository.buildCache();
+
     const repos = await this.repoRepository.getValidRepos();
     this.logger.doLog(`fetching ${repos.length} repos`);
 
@@ -123,12 +118,12 @@ export class RepoService {
     let idxRepo = 0;
     for (const repo of repos) {
       idxRepo += 1;
-      const folderPath = await getFolder(repo.folderKey);
+      const { folderPath } = await getFolder(repo.folderKey);
       const gitRepo = this.gitRepoService.getRepoFrom(
         folderPath,
         repo.directory,
       );
-      const fetchResults: FetchLog[] = [];
+      const fetchResults = [];
       const remotes = await gitRepo.getRemotes();
 
       this.logger.doLog(
@@ -141,7 +136,7 @@ export class RepoService {
         this.logger.doLog(
           `  remote ${remote.name}. ${idxRemote} of ${remotes.length}`,
         );
-        const { status, result } = await gitRepo
+        const result = await gitRepo
           .fetchAll(remote.name)
           .then((response) => {
             return { status: FetchLogStatusType.SUCCESS, result: response };
@@ -149,22 +144,31 @@ export class RepoService {
           .catch((error) => {
             return { status: FetchLogStatusType.ERROR, result: error };
           });
-        const log = await this.fetchLogRepoService.create({
+
+        const filter: RemoteFilterQuery = {
           folderKey: repo.folderKey,
           directory: repo.directory,
-          remote: remote.name,
+          name: remote.name,
+        };
+        const status: RemoteFetchStatus = {
+          fetchStatus: result.status,
+          fetchResult: result.result,
+        };
+        const update = await this.remoteRepository.updateFetchInfo(
+          filter,
           status,
-          result,
-        });
-        fetchResults.push(log);
+        );
+        fetchResults.push({ ...filter, ...status, update });
       }
 
       const failed = fetchResults.filter((i) => i.status === 'error').length;
       this.logger.doLog(
         `- repo remotes failed: ${failed} in ${repo.directory}`,
       );
-      results.push({ repo: repo.directory, failed, fetchResults });
+      if (failed) {
+        results.push({ repo: repo.directory, failed, fetchResults });
+      }
     }
-    return results.filter((i) => i.failed);
+    return results;
   }
 }
