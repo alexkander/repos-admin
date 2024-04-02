@@ -1,7 +1,7 @@
 import simpleGit from 'simple-git';
 import { BranchConstants } from '../constants/branch.constants';
-import { routes } from '../utils/routes';
-import { GitRemoteType } from './gitRepo.types';
+import { routes } from './routes';
+import { GitRemoteType } from '../types/gitRepo.types';
 
 export class GitRepo {
   private rootDirectory: string;
@@ -73,10 +73,9 @@ export class GitRepo {
     return fetchResultsMap;
   }
 
-  fetchAll(remote: string) {
-    return this.handler.fetch(remote, ['--all', '--tags', '-v']);
+  fetchAll(remoteName: string) {
+    return this.handler.fetch(remoteName, ['--all', '--tags', '-v']);
   }
-
   async isDescendent(chilpCommit: string, parentCommit: string) {
     if (parentCommit === chilpCommit) {
       return true;
@@ -87,5 +86,9 @@ export class GitRepo {
       chilpCommit,
     ]);
     return ancestor.startsWith(parentCommit);
+  }
+
+  removeRemote(remoteName: string) {
+    return this.handler.removeRemote(remoteName);
   }
 }

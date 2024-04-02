@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Post } from '@nestjs/common';
+import { Controller, Delete, Get, Param, Post } from '@nestjs/common';
 import { RemoteService } from '../services/remote.service';
 
 @Controller('remote')
@@ -26,5 +26,13 @@ export class RemoteController {
     @Param('group') group: string,
   ) {
     return this.remoteService.remotesLonelyBranchesByGroup(host, group);
+  }
+
+  @Delete('/:host/:group/removeRemotesWithNoLonelyBranches')
+  removeRemotesWithNoLonelyBranches(
+    @Param('host') host: string,
+    @Param('group') group: string,
+  ) {
+    return this.remoteService.removeRemotesWithNoLonelyBranches(host, group);
   }
 }

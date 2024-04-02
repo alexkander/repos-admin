@@ -1,19 +1,20 @@
 import { Injectable } from '@nestjs/common';
+import { GitRepo } from 'src/utils/gitRepo.class';
 import { RemoteConstants } from '../constants/remote.constants';
 import { FolderRepository } from '../repositories/folder.repository';
 import { RemoteRepository } from '../repositories/remote.repository';
 import { RepoRepository } from '../repositories/repo.repository';
 import { Remote } from '../schemas/remote.schema';
 import { RemoteTargetInfo, RemoteUrlType } from '../types/remotes.type';
-import { GitRepoService } from './gitRepo.service';
+import { LoggerService } from './logger.service';
 
 @Injectable()
 export class RemoteService {
   constructor(
+    private readonly logger: LoggerService,
     private readonly remoteRepository: RemoteRepository,
     private readonly repoRepository: RepoRepository,
     private readonly folderRepository: FolderRepository,
-    private readonly gitRepoService: GitRepoService,
   ) { }
 
   async listLocalRemotes() {
@@ -23,10 +24,7 @@ export class RemoteService {
         folder.folderKey,
       );
       const remotesPromises = repositories.map(async (repository) => {
-        const repo = this.gitRepoService.getRepoFrom(
-          folder.folderPath,
-          repository.directory,
-        );
+        const repo = new GitRepo(folder.folderPath, repository.directory);
         const remotesData = await repo.getRemotes();
         const remotes = remotesData.map((item) => {
           return {
@@ -110,7 +108,7 @@ export class RemoteService {
       targetGroup,
     });
 
-    const resultsRemotesPromises = remotes.map(async (remote) => {
+    const resultRemotesPromises = remotes.map(async (remote) => {
       const summaryBranches = await this.getCompareSummaryBranches(remote);
       const noDescendantsBranches = summaryBranches.filter(
         (b) => !b.descendants.length,
@@ -125,24 +123,79 @@ export class RemoteService {
       };
     });
 
-    const groupRemotes = await Promise.all(resultsRemotesPromises);
-    const notSynchedRemotes = groupRemotes.filter(
+    const resultRemotes = await Promise.all(resultRemotesPromises);
+    const remotesWithNoDescendants = resultRemotes.filter(
       (b) => b.noDescendantsBranches.length,
     );
 
     return {
-      resultRemotesCount: groupRemotes.length,
-      filterRemotesCount: notSynchedRemotes.length,
-      filterRemotes: notSynchedRemotes,
+      resultRemotesCount: resultRemotes.length,
+      remotesWithNoDescendantsCount: remotesWithNoDescendants.length,
+      remotesWithNoDescendants: remotesWithNoDescendants,
+    };
+  }
+
+  async removeRemotesWithNoLonelyBranches(
+    targetHost: string,
+    targetGroup: string,
+  ) {
+    const remotes = await this.remoteRepository.findByHostGroup({
+      targetHost,
+      targetGroup,
+    });
+
+    const resultRemotesPromises = remotes.map(async (remote) => {
+      const summaryBranches = await this.getCompareSummaryBranches(remote);
+      const noDescendantsBranches = summaryBranches.filter(
+        (b) => !b.descendants.length,
+      );
+      return {
+        folderKey: remote.folderKey,
+        directory: remote.directory,
+        remote: remote.name,
+        url: remote.url,
+        summaryBranches,
+        noDescendantsBranches,
+      };
+    });
+
+    const resultRemotes = await Promise.all(resultRemotesPromises);
+    const remotesWithDescendants = resultRemotes.filter(
+      (b) => !b.noDescendantsBranches.length,
+    );
+
+    this.logger.doLog(`- remotes to remove: ${remotesWithDescendants.length}`);
+
+    const remoteRemoveResults = [];
+
+    for (let idx = 0; idx < remotesWithDescendants.length; idx++) {
+      const remoteToRemove = remotesWithDescendants[idx];
+      const folder = await this.folderRepository.findOneByKey(
+        remoteToRemove.folderKey,
+      );
+      const gitRepo = new GitRepo(folder.folderPath, remoteToRemove.directory);
+      this.logger.doLog(
+        `- ${idx + 1} of ${remotesWithDescendants.length}: removing remote ${remoteToRemove.remote} from ${remoteToRemove.directory}`,
+      );
+      const remoteRemoveResult = await gitRepo
+        .removeRemote(remoteToRemove.remote)
+        .catch((error) => ({ error, failed: true }));
+
+      remoteRemoveResults.push(remoteRemoveResult);
+    }
+
+    return {
+      resultRemotesCount: resultRemotes.length,
+      remotesWithDescendantsCount: remotesWithDescendants.length,
+      remoteRemoveResults: remoteRemoveResults,
+      resultsFaileds: remoteRemoveResults.filter((i) => !!i.failed).length,
+      remotesWithDescendants: remotesWithDescendants,
     };
   }
 
   async getCompareSummaryBranches(remote: Remote) {
     const folder = await this.folderRepository.findOneByKey(remote.folderKey);
-    const gitRepo = this.gitRepoService.getRepoFrom(
-      folder.folderPath,
-      remote.directory,
-    );
+    const gitRepo = new GitRepo(folder.folderPath, remote.directory);
     const branches = await gitRepo.getBranches();
     const remoteBranches = branches.filter((b) => b.remote === remote.name);
     const otherBranches = branches.filter((b) => b.remote !== remote.name);

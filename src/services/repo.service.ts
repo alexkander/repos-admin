@@ -7,7 +7,7 @@ import { RemoteRepository } from '../repositories/remote.repository';
 import { RepoRepository } from '../repositories/repo.repository';
 import { Folder } from '../schemas/folder.schema';
 import { Repo } from '../schemas/repo.schema';
-import { GitRepo } from '../types/gitRepo.class';
+import { GitRepo } from '../utils/gitRepo.class';
 import { GitRemoteType } from '../types/gitRepo.types';
 import {
   FetchLogStatusType,
@@ -15,7 +15,6 @@ import {
   RemoteFilterQuery,
 } from '../types/remotes.type';
 import { routes } from '../utils/routes';
-import { GitRepoService } from './gitRepo.service';
 import { LoggerService } from './logger.service';
 
 @Injectable()
@@ -25,7 +24,6 @@ export class RepoService {
     private readonly repoRepository: RepoRepository,
     private readonly remoteRepository: RemoteRepository,
     private readonly folderRepository: FolderRepository,
-    private readonly gitRepoService: GitRepoService,
   ) { }
 
   async saveLocalRepos() {
@@ -63,18 +61,18 @@ export class RepoService {
       const repoDirectory = routes.relative(folder.folderPath, itemDirectory);
       const group = routes.dirname(repoDirectory);
       const localName = routes.basename(repoDirectory);
-      const repo = this.gitRepoService.getRepoFrom(
-        folder.folderPath,
-        repoDirectory,
-      );
+      const repo = new GitRepo(folder.folderPath, repoDirectory);
       const valid = await repo.isRepo();
+      const remotes = valid ? await repo.getRemotes() : [];
+      const branches = valid ? await repo.getBranches() : [];
       const data = {
         folderKey: folder.folderKey,
         directory: repoDirectory,
         group,
         localName,
         valid,
-        remotes: 0,
+        remotes: remotes.length,
+        branches: branches.length,
       };
       return [data];
     });
@@ -91,20 +89,6 @@ export class RepoService {
     return subDirectories.map((subDir) => {
       return subDir.split('\\').join('/');
     });
-  }
-
-  async countRemotes() {
-    const repos = await this.repoRepository.findValidRepos();
-    const updatePromises = repos.map(async (repo) => {
-      const remotes = await this.remoteRepository.findByDirectory(
-        repo.directory,
-      );
-      return this.repoRepository.updateRemotesById(repo._id, {
-        remotes: remotes.length,
-      });
-    });
-    const result = await Promise.all(updatePromises);
-    return result;
   }
 
   async fetchAllRepos(ignoreFetched: boolean) {
@@ -140,7 +124,7 @@ export class RepoService {
   }) {
     const { ignoreFetched, getFolder, repo, idxRepo, reposLength } = params;
     const { folderPath } = await getFolder(repo.folderKey);
-    const gitRepo = this.gitRepoService.getRepoFrom(folderPath, repo.directory);
+    const gitRepo = new GitRepo(folderPath, repo.directory);
     const remotes = await gitRepo.getRemotes();
 
     this.logger.doLog(

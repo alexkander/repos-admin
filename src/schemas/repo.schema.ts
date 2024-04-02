@@ -11,6 +11,7 @@ export class Repo {
   @Prop() localName: string;
   @Prop() valid: boolean;
   @Prop() remotes: number;
+  @Prop() branches: number;
 }
 
 export const RepoSchema = SchemaFactory.createForClass(Repo);

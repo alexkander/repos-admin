@@ -15,11 +15,6 @@ export class RepoController {
     return this.repoService.saveLocalRepos();
   }
 
-  @Post('/countRemotes')
-  countRemotes() {
-    return this.repoService.countRemotes();
-  }
-
   @Post('/gitFetchAllRemotes')
   gitFetchAllRemotes(@Query('all') all?: string) {
     return this.repoService.fetchAllRepos(all !== 'yes');

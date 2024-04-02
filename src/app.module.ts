@@ -14,7 +14,6 @@ import { Group, GroupSchema } from './schemas/group.schema';
 import { Remote, RemoteSchema } from './schemas/remote.schema';
 import { Repo, RepoSchema } from './schemas/repo.schema';
 import { FolderService } from './services/folder.service';
-import { GitRepoService } from './services/gitRepo.service';
 import { GroupService } from './services/group.service';
 import { LoggerService } from './services/logger.service';
 import { RemoteService } from './services/remote.service';
@@ -44,7 +43,6 @@ import { RepoService } from './services/repo.service';
     RepoRepository,
     RemoteRepository,
     RemoteService,
-    GitRepoService,
     GroupRepository,
     GroupService,
   ],
