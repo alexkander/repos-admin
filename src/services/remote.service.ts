@@ -1,11 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { GitRepo } from 'src/utils/gitRepo.class';
 import { RemoteConstants } from '../constants/remote.constants';
 import { FolderRepository } from '../repositories/folder.repository';
 import { RemoteRepository } from '../repositories/remote.repository';
 import { RepoRepository } from '../repositories/repo.repository';
 import { Remote } from '../schemas/remote.schema';
 import { RemoteTargetInfo, RemoteUrlType } from '../types/remotes.type';
+import { GitRepo } from '../utils/gitRepo.class';
+import { routes } from '../utils/routes';
 import { LoggerService } from './logger.service';
 
 @Injectable()
@@ -24,7 +25,11 @@ export class RemoteService {
         folder.folderKey,
       );
       const remotesPromises = repositories.map(async (repository) => {
-        const repo = new GitRepo(folder.folderPath, repository.directory);
+        const gitDirectory = routes.join(
+          folder.folderPath,
+          repository.directory,
+        );
+        const repo = new GitRepo(gitDirectory);
         const remotesData = await repo.getRemotes();
         const remotes = remotesData.map((item) => {
           return {
@@ -78,7 +83,7 @@ export class RemoteService {
       { regexp: RemoteConstants.UrlRegex.git, urlType: RemoteUrlType.GIT },
     ];
     for (const { regexp, urlType } of array) {
-      const matches = url.match(regexp);
+      const matches = url.match(new RegExp(regexp));
       if (matches) {
         const [, targetHost, targetGroup, targetName] = matches;
         return { urlType, targetHost, targetGroup, targetName };
@@ -173,7 +178,11 @@ export class RemoteService {
       const folder = await this.folderRepository.findOneByKey(
         remoteToRemove.folderKey,
       );
-      const gitRepo = new GitRepo(folder.folderPath, remoteToRemove.directory);
+      const gitDirectory = routes.join(
+        folder.folderPath,
+        remoteToRemove.directory,
+      );
+      const gitRepo = new GitRepo(gitDirectory);
       this.logger.doLog(
         `- ${idx + 1} of ${remotesWithDescendants.length}: removing remote ${remoteToRemove.remote} from ${remoteToRemove.directory}`,
       );
@@ -195,7 +204,8 @@ export class RemoteService {
 
   async getCompareSummaryBranches(remote: Remote) {
     const folder = await this.folderRepository.findOneByKey(remote.folderKey);
-    const gitRepo = new GitRepo(folder.folderPath, remote.directory);
+    const gitDirectory = routes.join(folder.folderPath, remote.directory);
+    const gitRepo = new GitRepo(gitDirectory);
     const branches = await gitRepo.getBranches();
     const remoteBranches = branches.filter((b) => b.remote === remote.name);
     const otherBranches = branches.filter((b) => b.remote !== remote.name);

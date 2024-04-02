@@ -17,6 +17,10 @@ export class FolderRepository {
     return this.FolderModel.findOne({ folderKey }).lean();
   }
 
+  findOneByArrayKey(folderKey: string[]) {
+    return this.FolderModel.find({ folderKey: { $in: folderKey } }).lean();
+  }
+
   async create(data: Folder) {
     return this.FolderModel.create(data);
   }

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import * as fs from 'fs';
 import { glob } from 'glob';
 import { RepoConstants } from '../constants/repo.constants';
@@ -7,13 +7,14 @@ import { RemoteRepository } from '../repositories/remote.repository';
 import { RepoRepository } from '../repositories/repo.repository';
 import { Folder } from '../schemas/folder.schema';
 import { Repo } from '../schemas/repo.schema';
-import { GitRepo } from '../utils/gitRepo.class';
 import { GitRemoteType } from '../types/gitRepo.types';
 import {
   FetchLogStatusType,
   RemoteFetchStatus,
   RemoteFilterQuery,
 } from '../types/remotes.type';
+import { ReposComparisonParams } from '../types/repos.types';
+import { GitRepo } from '../utils/gitRepo.class';
 import { routes } from '../utils/routes';
 import { LoggerService } from './logger.service';
 
@@ -49,7 +50,9 @@ export class RepoService {
   async getReposInDirectory(directory: string, folder: Folder) {
     const allSubDirectories = await this.getSubDirectories(directory);
     const subDirectories = allSubDirectories.filter((d) => {
-      return !RepoConstants.ignoreDirectories.find((regex) => d.match(regex));
+      return !RepoConstants.ignoreDirectories.find((regex) =>
+        d.match(new RegExp(regex)),
+      );
     });
 
     const reposPromises = subDirectories.map(async (subDirectory) => {
@@ -61,7 +64,8 @@ export class RepoService {
       const repoDirectory = routes.relative(folder.folderPath, itemDirectory);
       const group = routes.dirname(repoDirectory);
       const localName = routes.basename(repoDirectory);
-      const repo = new GitRepo(folder.folderPath, repoDirectory);
+      const gitRepoDirectory = routes.join(folder.folderPath, repoDirectory);
+      const repo = new GitRepo(gitRepoDirectory);
       const valid = await repo.isRepo();
       const remotes = valid ? await repo.getRemotes() : [];
       const branches = valid ? await repo.getBranches() : [];
@@ -124,7 +128,8 @@ export class RepoService {
   }) {
     const { ignoreFetched, getFolder, repo, idxRepo, reposLength } = params;
     const { folderPath } = await getFolder(repo.folderKey);
-    const gitRepo = new GitRepo(folderPath, repo.directory);
+    const gitDirectory = routes.join(folderPath, repo.directory);
+    const gitRepo = new GitRepo(gitDirectory);
     const remotes = await gitRepo.getRemotes();
 
     this.logger.doLog(
@@ -195,5 +200,78 @@ export class RepoService {
     };
     const update = await this.remoteRepository.updateFetchInfo(filter, status);
     return { ...filter, ...status, update };
+  }
+
+  async compareRepos(params: ReposComparisonParams) {
+    const { folderKeyFrom, folderKeyTo, directoryFrom, directoryTo } = params;
+
+    const [folderFrom, folderTo] = await this.validateFoldersByKeys([
+      folderKeyFrom,
+      folderKeyTo,
+    ]);
+
+    const [gitRepoFrom, gitRepoTo] = await this.validateGitRepos([
+      routes.join(folderFrom.folderPath, directoryFrom),
+      routes.join(folderTo.folderPath, directoryTo),
+    ]);
+
+    const [branchesFrom, branchesTo] = await Promise.all([
+      gitRepoFrom.getBranches(),
+      gitRepoTo.getBranches(),
+    ]);
+
+    const branchesFromSummaryPromises = branchesFrom.map(async (branch) => {
+      const sameNameBranchesToPromises = branchesTo
+        .filter((b) => b.shortName === branch.shortName)
+        .map(async (b) => {
+          const isDescendent = await gitRepoTo.isDescendent(
+            b.commit,
+            branch.commit,
+          );
+          return { ...b, isDescendent };
+        });
+
+      const sameNameBranchesTo = await Promise.all(sameNameBranchesToPromises);
+
+      const noDescendants = !sameNameBranchesTo.find((b) => b.isDescendent);
+
+      return {
+        ...branch,
+        noDescendants,
+        sameNameBranchesTo,
+      };
+    });
+
+    const branchesFromSummary = await Promise.all(branchesFromSummaryPromises);
+    const noDescendantsBranchesFrom = branchesFromSummary.filter(
+      (b) => b.noDescendants,
+    );
+
+    return noDescendantsBranchesFrom;
+  }
+
+  validateFoldersByKeys(foldersKeys: string[]) {
+    const promises = foldersKeys.map(async (folderKey) => {
+      const folder = await this.folderRepository.findOneByKey(folderKey);
+      if (!folder) {
+        throw new NotFoundException(`folder ${folderKey} not found`);
+      }
+      return folder;
+    });
+    return Promise.all(promises);
+  }
+
+  validateGitRepos(directories: string[]) {
+    const promises = directories.map(async (directory) => {
+      const gitRepo = new GitRepo(directory);
+      const isRepo = await gitRepo.isRepo();
+      if (!isRepo) {
+        throw new BadRequestException(
+          `directory ${directory} is not a git repo`,
+        );
+      }
+      return gitRepo;
+    });
+    return Promise.all(promises);
   }
 }

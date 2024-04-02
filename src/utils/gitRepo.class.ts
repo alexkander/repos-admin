@@ -1,14 +1,11 @@
 import simpleGit from 'simple-git';
 import { BranchConstants } from '../constants/branch.constants';
-import { routes } from './routes';
 import { GitRemoteType } from '../types/gitRepo.types';
 
 export class GitRepo {
-  private rootDirectory: string;
   private handler: ReturnType<typeof simpleGit>;
 
-  constructor(folderPath: string, directory: string) {
-    this.rootDirectory = routes.join(folderPath, directory);
+  constructor(private rootDirectory: string) {
     this.handler = simpleGit(this.rootDirectory);
   }
 
