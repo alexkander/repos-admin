@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
+import { Remote } from '../schemas/remote.schema';
 import {
   HostGroupFilterQuery,
   RemoteFetchStatus,
@@ -8,7 +9,6 @@ import {
   RemoteTargetInfo,
   RepoFilterQuery,
 } from '../types/remotes.type';
-import { Remote } from '../schemas/remote.schema';
 
 @Injectable()
 export class RemoteRepository {
@@ -20,36 +20,37 @@ export class RemoteRepository {
     return this.RemoteModel.find().lean();
   }
 
-  findOneInRepoByName(filter: RemoteFilterQuery) {
-    return this.RemoteModel.findOne(filter).lean();
+  findByRepo({ directory, folderKey }: RepoFilterQuery) {
+    return this.RemoteModel.find({ directory, folderKey }).lean();
   }
 
-  findSiblings(id: string, { folderKey, directory }: RepoFilterQuery) {
-    return this.RemoteModel.find({
-      id: { $ne: id },
-      folderKey,
-      directory,
-    }).lean();
+  findOneInRepoByName({ directory, folderKey, name }: RemoteFilterQuery) {
+    return this.RemoteModel.findOne({ directory, folderKey, name }).lean();
   }
 
   findByHostGroup({ targetHost, targetGroup }: HostGroupFilterQuery) {
     return this.RemoteModel.find({ targetHost, targetGroup }).lean();
   }
 
-  findByDirectory(directory: string) {
-    return this.RemoteModel.find({ directory }).lean();
-  }
-
   async create(data: Remote) {
     return this.RemoteModel.create(data);
   }
 
-  async updateTargetInfoById(id: Types.ObjectId, data: RemoteTargetInfo) {
-    return this.RemoteModel.updateOne({ _id: id }, data);
+  async updateTargetInfoById(
+    id: Types.ObjectId,
+    { targetGroup, targetName, targetHost, urlType }: RemoteTargetInfo,
+  ) {
+    return this.RemoteModel.updateOne(
+      { _id: id },
+      { targetGroup, targetName, targetHost, urlType },
+    );
   }
 
-  async updateFetchInfo(filter: RemoteFilterQuery, data: RemoteFetchStatus) {
-    return this.RemoteModel.updateMany(filter, data);
+  async updateFetchInfo(
+    filter: RemoteFilterQuery,
+    { fetchResult, fetchStatus }: RemoteFetchStatus,
+  ) {
+    return this.RemoteModel.updateMany(filter, { fetchResult, fetchStatus });
   }
 
   truncate() {

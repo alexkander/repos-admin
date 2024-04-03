@@ -1,13 +1,13 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import * as fs from 'fs';
 import { glob } from 'glob';
+import { Remote } from 'src/schemas/remote.schema';
+import { WithBDId } from 'src/types/utils.types';
 import { RepoConstants } from '../constants/repo.constants';
 import { FolderRepository } from '../repositories/folder.repository';
 import { RemoteRepository } from '../repositories/remote.repository';
 import { RepoRepository } from '../repositories/repo.repository';
 import { Folder } from '../schemas/folder.schema';
-import { Repo } from '../schemas/repo.schema';
-import { GitRemoteType } from '../types/gitRepo.types';
 import {
   FetchLogStatusType,
   RemoteFetchStatus,
@@ -95,105 +95,58 @@ export class RepoService {
     });
   }
 
-  async fetchAllRepos(ignoreFetched: boolean) {
+  async fetchAllRemotesFromRepo(type: string) {
     const getFolder = this.folderRepository.buildCache();
-    const repos = await this.repoRepository.findValidRepos();
-    const results = [];
+    const remotes = await this.remoteRepository.all();
+    const fetchResults = [];
+    const remotesFilter = remotes.filter((r) => this.remoteFilter(type, r));
 
-    this.logger.doLog(`fetching ${repos.length} repos`);
+    this.logger.doLog(`remotes to fetch ${remotesFilter.length}`);
 
-    for (let idxRepo = 0; idxRepo < repos.length; idxRepo++) {
-      const repo = repos[idxRepo];
-      idxRepo += 1;
-      const result = await this.fetchAllRemotesFromRepo({
-        ignoreFetched,
-        idxRepo,
-        repo,
-        getFolder,
-        reposLength: repos.length,
-      });
-      if (result.failed) {
-        results.push(result);
-      }
+    for (let idxRemote = 0; idxRemote < remotesFilter.length; idxRemote++) {
+      const remote = remotesFilter[idxRemote];
+      this.logger.doLog(
+        `- remote ${idxRemote + 1} of ${remotesFilter.length} (${remote.name}): ${remote.url}`,
+      );
+      const { folderPath } = await getFolder(remote.folderKey);
+      const fetchResult = await this.fetchRemotesFromRepo(folderPath, remote);
+      fetchResults.push(fetchResult);
     }
-    return results;
-  }
-
-  async fetchAllRemotesFromRepo(params: {
-    ignoreFetched: boolean;
-    repo: Repo;
-    idxRepo: number;
-    reposLength: number;
-    getFolder: (key: string) => Promise<Folder>;
-  }) {
-    const { ignoreFetched, getFolder, repo, idxRepo, reposLength } = params;
-    const { folderPath } = await getFolder(repo.folderKey);
-    const gitDirectory = routes.join(folderPath, repo.directory);
-    const gitRepo = new GitRepo(gitDirectory);
-    const remotes = await gitRepo.getRemotes();
-
-    this.logger.doLog(
-      `- fetch repo ${idxRepo} of ${reposLength}. remotes: ${remotes.length} ${repo.directory}`,
-    );
-
-    const fetchRemotesPromises = remotes.map((remote, idxRemote) => {
-      return this.fetchRemotesFromRepo({
-        ignoreFetched,
-        getFolder,
-        gitRepo,
-        idxRemote: idxRemote + 1,
-        remote,
-        repo,
-        remoteLength: remotes.length,
-      });
-    });
-
-    const fetchResults = await Promise.all(fetchRemotesPromises);
 
     const failed = fetchResults.filter((i) => i.fetchStatus === 'error').length;
-    this.logger.doLog(`- repo remotes failed: ${failed} in ${repo.directory}`);
-    return { repo: repo.directory, failed, fetchResults };
+
+    this.logger.doLog(`remotes fetched. fails ${failed}`);
+    return { failed, fetchResults };
   }
 
-  async fetchRemotesFromRepo(params: {
-    ignoreFetched: boolean;
-    repo: Repo;
-    remote: GitRemoteType;
-    idxRemote: number;
-    remoteLength: number;
-    gitRepo: GitRepo;
-    getFolder: (key: string) => Promise<Folder>;
-  }) {
-    const { repo, remote, idxRemote, remoteLength, gitRepo } = params;
+  remoteFilter(type: string, remote: WithBDId & Remote) {
+    if (type === 'all') {
+      return true;
+    } else if (type === 'fetchStatusError') {
+      return remote.fetchStatus === 'error';
+    } else if (type === 'notFetched') {
+      return !remote.fetchStatus;
+    } else if (typeof type === 'string') {
+      return type === remote._id.toHexString();
+    }
+    return true;
+  }
+
+  async fetchRemotesFromRepo(folderPath: string, remote: Remote) {
+    const gitDirectory = routes.join(folderPath, remote.directory);
+    const gitRepo = new GitRepo(gitDirectory);
     const filter: RemoteFilterQuery = {
-      folderKey: repo.folderKey,
-      directory: repo.directory,
+      folderKey: remote.folderKey,
+      directory: remote.directory,
       name: remote.name,
     };
-    if (params.ignoreFetched) {
-      const bdRemote = await this.remoteRepository.findOneInRepoByName(filter);
-      if (bdRemote?.fetchResult && bdRemote?.fetchStatus) {
-        this.logger.doLog(
-          `  remote ${idxRemote} of ${remoteLength} (${remote.name}) ignore.`,
-        );
-        const status: RemoteFetchStatus = {
-          fetchStatus: bdRemote.fetchStatus,
-          fetchResult: bdRemote.fetchResult,
-        };
-        return { ...filter, ...status };
-      }
-    }
-    this.logger.doLog(
-      `  remote ${idxRemote} of ${remoteLength} (${remote.name}) `,
-    );
     const result = await gitRepo
       .fetchAll(remote.name)
-      .then((response) => {
-        return { status: FetchLogStatusType.SUCCESS, result: response };
-      })
-      .catch((error) => {
-        return { status: FetchLogStatusType.ERROR, result: error };
-      });
+      .then((response) => ({
+        status: FetchLogStatusType.SUCCESS,
+        result: response,
+      }))
+      .catch((error) => ({ status: FetchLogStatusType.ERROR, result: error }));
     const status: RemoteFetchStatus = {
       fetchStatus: result.status,
       fetchResult: result.result,

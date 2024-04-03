@@ -71,7 +71,7 @@ export class GitRepo {
   }
 
   fetchAll(remoteName: string) {
-    return this.handler.fetch(remoteName, ['--all', '--tags', '-v']);
+    return this.handler.raw(['fetch', remoteName, '--tags', '-v']);
   }
   async isDescendent(chilpCommit: string, parentCommit: string) {
     if (parentCommit === chilpCommit) {

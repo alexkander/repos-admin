@@ -2,9 +2,9 @@ import {
   BadRequestException,
   Controller,
   Get,
+  Param,
   Post,
-  Query,
-  Req,
+  Req
 } from '@nestjs/common';
 import { Request } from 'express';
 import { RepoControllerConstants } from '../constants/repo.constants';
@@ -24,9 +24,9 @@ export class RepoController {
     return this.repoService.saveLocalRepos();
   }
 
-  @Post('/gitFetchAllRemotes')
-  gitFetchAllRemotes(@Query('all') all?: string) {
-    return this.repoService.fetchAllRepos(all !== 'yes');
+  @Post('/gitFetchAllRemotes/:type')
+  gitFetchAllRemotes(@Param('type') type: string) {
+    return this.repoService.fetchAllRemotesFromRepo(type);
   }
 
   @Get('/compareWith/*')

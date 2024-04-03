@@ -1,14 +1,18 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
+import { Model } from 'mongoose';
 import { Repo } from '../schemas/repo.schema';
-import { RepoRemotesInfo } from '../types/repos.types';
+import { RepoFilterQuery } from 'src/types/remotes.type';
 
 @Injectable()
 export class RepoRepository {
   constructor(
     @InjectModel(Repo.name) private readonly RepoModel: Model<Repo>,
   ) { }
+
+  findOneByRepo({ directory, folderKey }: RepoFilterQuery) {
+    return this.RepoModel.findOne({ directory, folderKey, valid: true }).lean();
+  }
 
   findValidRepos() {
     return this.RepoModel.find({ valid: true }).lean();
@@ -20,10 +24,6 @@ export class RepoRepository {
 
   async create(data: Repo) {
     return this.RepoModel.create(data);
-  }
-
-  async updateRemotesById(id: Types.ObjectId, data: RepoRemotesInfo) {
-    return this.RepoModel.updateOne({ _id: id }, data);
   }
 
   truncate() {
