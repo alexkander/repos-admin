@@ -1,13 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { RemoteConstants } from '../constants/remote.constants';
 import { FolderRepository } from '../repositories/folder.repository';
 import { RemoteRepository } from '../repositories/remote.repository';
 import { RepoRepository } from '../repositories/repo.repository';
 import { Remote } from '../schemas/remote.schema';
-import { RemoteTargetInfo, RemoteUrlType } from '../types/remotes.type';
 import { GitRepo } from '../utils/gitRepo.class';
 import { routes } from '../utils/routes';
 import { LoggerService } from './logger.service';
+import { RemoteUtilsService } from './remote-utils.service';
 
 @Injectable()
 export class RemoteService {
@@ -16,7 +15,18 @@ export class RemoteService {
     private readonly remoteRepository: RemoteRepository,
     private readonly repoRepository: RepoRepository,
     private readonly folderRepository: FolderRepository,
+    private readonly remoteUtilsService: RemoteUtilsService,
   ) { }
+
+  async saveLocalRemotes() {
+    await this.remoteRepository.truncate();
+    const localRemotes = await this.listLocalRemotes();
+    const createPromises = localRemotes.map((remote) => {
+      return this.remoteRepository.create(remote);
+    });
+    const records = Promise.all(createPromises);
+    return records;
+  }
 
   async listLocalRemotes() {
     const folders = await this.folderRepository.all();
@@ -31,12 +41,12 @@ export class RemoteService {
         );
         const repo = new GitRepo(gitDirectory);
         const remotesData = await repo.getRemotes();
-        const remotes = remotesData.map((item) => {
-          return {
+        const remotes = remotesData.map((gitRemote) => {
+          return this.remoteUtilsService.gitRepoToBdRepo({
+            gitRemote,
             folderKey: folder.folderKey,
             directory: repository.directory,
-            ...item,
-          };
+          });
         });
         return remotes;
       });
@@ -48,65 +58,6 @@ export class RemoteService {
     const remotes = (await Promise.all(remotesPromises)).flatMap((r) => r);
     return remotes;
   }
-
-  async saveLocalRemotes() {
-    await this.remoteRepository.truncate();
-    const localRemotes = await this.listLocalRemotes();
-    const createPromises = localRemotes.map((remote) => {
-      return this.remoteRepository.create(remote);
-    });
-    const records = Promise.all(createPromises);
-    return records;
-  }
-
-  async parseRemotes() {
-    const remotes = await this.remoteRepository.all();
-    const promises = remotes.map(async ({ _id, ...remote }) => {
-      const { urlType, targetHost, targetGroup, targetName } =
-        this.parseTargetInfo(remote);
-      const data: RemoteTargetInfo = {
-        urlType,
-        targetGroup,
-        targetHost,
-        targetName: targetName ? this.normalizeTargetName(targetName) : null,
-      };
-      return this.remoteRepository.updateTargetInfoById(_id, data);
-    });
-    return await Promise.all(promises);
-  }
-
-  parseTargetInfo({ url }: { url: string }) {
-    const array = [
-      { regexp: RemoteConstants.UrlRegex.https, urlType: RemoteUrlType.HTTPS },
-      { regexp: RemoteConstants.UrlRegex.http, urlType: RemoteUrlType.HTTP },
-      { regexp: RemoteConstants.UrlRegex.ssh, urlType: RemoteUrlType.SSH },
-      { regexp: RemoteConstants.UrlRegex.git, urlType: RemoteUrlType.GIT },
-    ];
-    for (const { regexp, urlType } of array) {
-      const matches = url.match(new RegExp(regexp));
-      if (matches) {
-        const [, targetHost, targetGroup, targetName] = matches;
-        return { urlType, targetHost, targetGroup, targetName };
-      }
-    }
-    return {
-      urlType: RemoteUrlType.UNKNOWN,
-      targetHost: null,
-      targetGroup: null,
-      targetName: null,
-    };
-  }
-
-  normalizeTargetName(targetNameRaw: string) {
-    const targetName = targetNameRaw.endsWith(RemoteConstants.gitSufix)
-      ? targetNameRaw.substring(
-        0,
-        targetNameRaw.length - RemoteConstants.gitSufix.length,
-      )
-      : targetNameRaw;
-    return targetName;
-  }
-
   async remotesLonelyBranchesByGroup(targetHost: string, targetGroup: string) {
     const remotes = await this.remoteRepository.findByHostGroup({
       targetHost,

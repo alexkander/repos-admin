@@ -18,6 +18,7 @@ import { GroupService } from './services/group.service';
 import { LoggerService } from './services/logger.service';
 import { RemoteService } from './services/remote.service';
 import { RepoService } from './services/repo.service';
+import { RemoteUtilsService } from './services/remote-utils.service';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { RepoService } from './services/repo.service';
     RepoRepository,
     RemoteRepository,
     RemoteService,
+    RemoteUtilsService,
     GroupRepository,
     GroupService,
   ],

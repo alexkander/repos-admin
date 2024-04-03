@@ -15,11 +15,6 @@ export class RemoteController {
     return this.remoteService.saveLocalRemotes();
   }
 
-  @Post('/parseRemotes')
-  parseRemotes() {
-    return this.remoteService.parseRemotes();
-  }
-
   @Get('/:host/:group/remotesLonelyBranchesByGroup')
   getRemotesLonelyBranchesByGroup(
     @Param('host') host: string,

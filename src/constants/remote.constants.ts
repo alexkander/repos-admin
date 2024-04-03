@@ -5,5 +5,5 @@ export const RemoteConstants = {
     ssh: /^ssh:\/\/([^\/]*)\/(.*)\/([^\/]*)$/,
     git: /^git@([^\/]*):(.*)\/([^\/]*)$/,
   },
-  gitSufix: '.git',
+  gitSuffix: '.git',
 };

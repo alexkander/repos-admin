@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import * as fs from 'fs';
 import { glob } from 'glob';
 import { Remote } from 'src/schemas/remote.schema';
@@ -17,6 +21,8 @@ import { ReposComparisonParams } from '../types/repos.types';
 import { GitRepo } from '../utils/gitRepo.class';
 import { routes } from '../utils/routes';
 import { LoggerService } from './logger.service';
+import { RemoteUtilsService } from './remote-utils.service';
+import { Types } from 'mongoose';
 
 @Injectable()
 export class RepoService {
@@ -25,6 +31,7 @@ export class RepoService {
     private readonly repoRepository: RepoRepository,
     private readonly remoteRepository: RemoteRepository,
     private readonly folderRepository: FolderRepository,
+    private readonly remoteUtilsService: RemoteUtilsService,
   ) { }
 
   async saveLocalRepos() {
@@ -45,6 +52,50 @@ export class RepoService {
     const allFiles = (await Promise.all(allFilesPromises)).flatMap((f) => f);
 
     return allFiles;
+  }
+
+  async refresh(id: Types.ObjectId) {
+    const repo = await this.repoRepository.findById(id);
+    const folder = await this.folderRepository.findOneByKey(repo.folderKey);
+    const gitRemotes = await this.getRemotesFromGitRepo({
+      folder,
+      directory: repo.directory,
+    });
+    const bdRemotes = await this.remoteRepository.findByRepo(repo);
+    const upsertPromises = gitRemotes.map((gitRemote) => {
+      const remoteData = this.remoteUtilsService.gitRepoToBdRepo({
+        gitRemote,
+        folderKey: folder.folderKey,
+        directory: repo.directory,
+      });
+      const bdRemote = bdRemotes.find((r) => r.name === remoteData.name);
+      if (!bdRemote) {
+        return this.remoteRepository.create(remoteData);
+      }
+      return this.remoteRepository.updateById(bdRemote._id, remoteData);
+    });
+    const results = await Promise.all(upsertPromises);
+    return results;
+  }
+
+  async getRemotesFromGitRepo({
+    folder,
+    directory,
+  }: {
+    folder: Folder;
+    directory: string;
+  }) {
+    const gitDirectory = routes.join(folder.folderPath, directory);
+    const repo = new GitRepo(gitDirectory);
+    const remotesData = await repo.getRemotes();
+    const remotes = remotesData.map((item) => {
+      return {
+        folderKey: folder.folderKey,
+        directory,
+        ...item,
+      };
+    });
+    return remotes;
   }
 
   async getReposInDirectory(directory: string, folder: Folder) {

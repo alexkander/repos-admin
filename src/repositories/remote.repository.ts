@@ -6,7 +6,6 @@ import {
   HostGroupFilterQuery,
   RemoteFetchStatus,
   RemoteFilterQuery,
-  RemoteTargetInfo,
   RepoFilterQuery,
 } from '../types/remotes.type';
 
@@ -36,14 +35,8 @@ export class RemoteRepository {
     return this.RemoteModel.create(data);
   }
 
-  async updateTargetInfoById(
-    id: Types.ObjectId,
-    { targetGroup, targetName, targetHost, urlType }: RemoteTargetInfo,
-  ) {
-    return this.RemoteModel.updateOne(
-      { _id: id },
-      { targetGroup, targetName, targetHost, urlType },
-    );
+  async updateById(_id: Types.ObjectId, data: Remote) {
+    return this.RemoteModel.updateOne({ _id }, data);
   }
 
   async updateFetchInfo(

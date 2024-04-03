@@ -4,11 +4,13 @@ import {
   Get,
   Param,
   Post,
+  Put,
   Req
 } from '@nestjs/common';
 import { Request } from 'express';
 import { RepoControllerConstants } from '../constants/repo.constants';
 import { RepoService } from '../services/repo.service';
+import { Types } from 'mongoose';
 
 @Controller('repo')
 export class RepoController {
@@ -22,6 +24,11 @@ export class RepoController {
   @Post('/saveLocalRepos')
   saveLocalRepos() {
     return this.repoService.saveLocalRepos();
+  }
+
+  @Put('/:id/refresh')
+  refresh(@Param('id') id: Types.ObjectId) {
+    return this.repoService.refresh(id);
   }
 
   @Post('/gitFetchAllRemotes/:type')
