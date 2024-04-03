@@ -31,9 +31,9 @@ export class RepoController {
     return this.repoService.refresh(id);
   }
 
-  @Post('/gitFetchAllRemotes/:type')
-  gitFetchAllRemotes(@Param('type') type: string) {
-    return this.repoService.fetchAllRemotesFromRepo(type);
+  @Post('/gitFetch/:type')
+  gitFetch(@Param('type') type: string) {
+    return this.repoService.gitFetch(type);
   }
 
   @Get('/compareWith/*')

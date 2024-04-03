@@ -146,7 +146,7 @@ export class RepoService {
     });
   }
 
-  async fetchAllRemotesFromRepo(type: string) {
+  async gitFetch(type: string) {
     const getFolder = this.folderRepository.buildCache();
     const remotes = await this.remoteRepository.all();
     const fetchResults = [];
