@@ -35,6 +35,10 @@ export class RepoService {
     private readonly remoteUtilsService: RemoteUtilsService,
   ) { }
 
+  count() {
+    return this.repoRepository.count();
+  }
+
   searchRepos(query: FilterQuery<Repo>, sort: SortQueryData<Repo>) {
     return this.repoRepository.findAll(query, sort);
   }

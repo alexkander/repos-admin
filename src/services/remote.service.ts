@@ -1,8 +1,10 @@
 import { Injectable } from '@nestjs/common';
+import { FilterQuery } from 'mongoose';
 import { FolderRepository } from '../repositories/folder.repository';
 import { RemoteRepository } from '../repositories/remote.repository';
 import { RepoRepository } from '../repositories/repo.repository';
 import { Remote } from '../schemas/remote.schema';
+import { SortQueryData } from '../types/utils.types';
 import { GitRepo } from '../utils/gitRepo.class';
 import { routes } from '../utils/routes';
 import { LoggerService } from './logger.service';
@@ -17,6 +19,14 @@ export class RemoteService {
     private readonly folderRepository: FolderRepository,
     private readonly remoteUtilsService: RemoteUtilsService,
   ) { }
+
+  count() {
+    return this.remoteRepository.count();
+  }
+
+  searchRepos(query: FilterQuery<Remote>, sort: SortQueryData<Remote>) {
+    return this.remoteRepository.findAll(query, sort);
+  }
 
   async saveLocalRemotes() {
     await this.remoteRepository.truncate();

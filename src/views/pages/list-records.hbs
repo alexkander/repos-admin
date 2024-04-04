@@ -1,73 +1,40 @@
 {{#> layout }} {{> nav }} {{> alerts }}
+<div class="text-end">
+  {{#if (eeq records.length totalCount ) }}
+  <i>{{ totalCount }} records</i>
+  {{else }}
+  <i>{{ records.length }} of {{ totalCount }} records</i>
+  {{/if }}
+</div>
 <table class="table table-sm">
   <thead>
     <tr>
       <th>#</th>
+      {{#each fields}}
       <th>
-        {{#> labelSortBy field='folderKey' value=searchQuery.sort.folder
-        }}folder{{/labelSortBy }}
+        {{#> labelSortBy field=field value=(prop field ../searchQuery.sort) }}
+        {{ text }} {{/labelSortBy}}
       </th>
-      <th>
-        {{#> labelSortBy field='directory'
-        value=searchQuery.sort.directory}}directory{{/labelSortBy }}
-      </th>
-      <th>
-        {{#> labelSortBy field='group'
-        value=searchQuery.sort.group}}group{{/labelSortBy }}
-      </th>
-      <th>
-        {{#> labelSortBy field='localName' value=searchQuery.sort.localName
-        }}name{{/labelSortBy }}
-      </th>
-      <th>
-        {{#> labelSortBy field='isValid' value=searchQuery.sort.isValid }}is
-        valid{{/labelSortBy }}
-      </th>
-      <th>
-        {{#> labelSortBy field='remotes' value=searchQuery.sort.remotes
-        }}remotes{{/labelSortBy }}
-      </th>
-      <th>
-        {{#> labelSortBy field='branches' value=searchQuery.sort.branches
-        }}branches{{/labelSortBy }}
-      </th>
+      {{/each}}
     </tr>
     <tr class="app--searchBoxesWrapper">
       <td></td>
+      {{#each fields }}
       <td>
-        {{> inputSearch field='folderKey' value=searchQuery.search.folder }}
+        {{> inputSearch field=field value=(prop field ../searchQuery.search) }}
       </td>
-      <td>
-        {{> inputSearch field='directory' value=searchQuery.search.directory }}
-      </td>
-      <td>{{> inputSearch field='group' value=searchQuery.search.group }}</td>
-      <td>
-        {{> inputSearch field='localName' value=searchQuery.search.localName }}
-      </td>
-      <td>
-        {{> inputSearch field='isValid' value=searchQuery.search.isValid }}
-      </td>
-      <td>
-        {{> inputSearch field='remotes' value=searchQuery.search.remotes }}
-      </td>
-      <td>
-        {{> inputSearch field='branches' value=searchQuery.search.branches }}
-      </td>
+      {{/each}}
     </tr>
   </thead>
   <tbody>
-    {{#each repos }}
+    {{#each records }}
     <tr>
       <td>{{ addOne @index }}</td>
-      <td>{{ folderKey }}</td>
-      <td>{{ directory }}</td>
-      <td>{{ group }}</td>
-      <td>{{ localName }}</td>
-      <td>{{ valid }}</td>
-      <td>{{ remotes }}</td>
-      <td>{{ branches }}</td>
+      {{#each ../fields }}
+      <td>{{prop field .. }}</td>
+      {{/each}}
     </tr>
-    {{/each }}
+    {{/each}}
   </tbody>
 </table>
 <script>
@@ -97,6 +64,7 @@
 
     const objectToQueryString = (obj, parentKey = '') => {
       let queryString = '';
+      let sep = '';
 
       for (const key in obj) {
         if (obj.hasOwnProperty(key)) {
@@ -106,13 +74,12 @@
             : encodeURIComponent(key);
 
           if (typeof value === 'object') {
-            queryString += objectToQueryString(value, encodedKey);
+            const subQueryString = objectToQueryString(value, encodedKey);
+            queryString += subQueryString ? `${sep}${subQueryString}` : '';
           } else {
-            if (queryString.length > 0) {
-              queryString += '&';
-            }
-            queryString += `${encodedKey}=${encodeURIComponent(value)}`;
+            queryString += `${sep}${encodedKey}=${encodeURIComponent(value)}`;
           }
+          sep = '&';
         }
       }
       return queryString;
@@ -144,7 +111,7 @@
       const label = event.target;
       const field = label.dataset.field;
       newQuery.sort = newQuery.sort || {};
-      console.log([event, field, label, label.dataset])
+      console.log([event, field, label, label.dataset]);
       if (!newQuery.sort[field]) {
         newQuery.sort[field] = 'asc';
       } else if (newQuery.sort[field] === 'asc') {

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
+import { FilterQuery, Model, Types } from 'mongoose';
 import { Remote } from '../schemas/remote.schema';
 import {
   HostGroupFilterQuery,
@@ -8,6 +8,7 @@ import {
   RemoteFilterQuery,
   RepoFilterQuery,
 } from '../types/remotes.type';
+import { SortQueryData } from '../types/utils.types';
 
 @Injectable()
 export class RemoteRepository {
@@ -15,8 +16,16 @@ export class RemoteRepository {
     @InjectModel(Remote.name) private readonly RemoteModel: Model<Remote>,
   ) { }
 
+  count() {
+    return this.RemoteModel.countDocuments();
+  }
+
   all() {
     return this.RemoteModel.find().lean();
+  }
+
+  findAll(query: FilterQuery<Remote>, sort: SortQueryData<Remote>) {
+    return this.RemoteModel.find(query, undefined, { sort }).lean();
   }
 
   findByRepo({ directory, folderKey }: RepoFilterQuery) {

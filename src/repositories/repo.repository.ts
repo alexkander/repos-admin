@@ -11,6 +11,10 @@ export class RepoRepository {
     @InjectModel(Repo.name) private readonly RepoModel: Model<Repo>,
   ) { }
 
+  count() {
+    return this.RepoModel.countDocuments();
+  }
+
   findAll(query: FilterQuery<Repo>, sort: SortQueryData<Repo>) {
     return this.RepoModel.find(query, undefined, { sort }).lean();
   }

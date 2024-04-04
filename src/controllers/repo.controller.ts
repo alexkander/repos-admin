@@ -11,12 +11,22 @@ import {
 } from '@nestjs/common';
 import { Request } from 'express';
 import { Types } from 'mongoose';
-import { repoSearchValidation } from '../validations/repo.search.validator';
 import { RepoControllerConstants } from '../constants/repo.constants';
 import { Repo } from '../schemas/repo.schema';
 import { RepoService } from '../services/repo.service';
 import { SearchService } from '../services/search.service';
 import { TableQueryParams } from '../types/utils.types';
+import { repoSearchValidation } from '../validations/repo.search.validator';
+
+const fields = [
+  { field: 'folderKey', text: 'folder' },
+  { field: 'directory', text: 'directory' },
+  { field: 'group', text: 'group' },
+  { field: 'localName', text: 'name' },
+  { field: 'isValid', text: 'is valid' },
+  { field: 'remotes', text: 'remotes' },
+  { field: 'branches', text: 'branches' },
+];
 
 @Controller('repo')
 export class RepoController {
@@ -26,18 +36,20 @@ export class RepoController {
   ) { }
 
   @Get('/')
-  @Render('list-repos.hbs')
-  async tableRepos(@Query() searchQuery: TableQueryParams<Repo>) {
+  @Render('list-records.hbs')
+  async tableRepos(@Query() query: TableQueryParams<Repo>) {
+    const searchQuery = { search: {}, sort: {}, ...query };
     const errors = this.searchService.validateSearchParams(
-      searchQuery,
+      query,
       repoSearchValidation,
     );
     const { filterQuery, sortQuery } =
-      this.searchService.queryToFilterParams(searchQuery);
+      this.searchService.queryToFilterParams(query);
 
     const useQuery = !errors.length ? filterQuery : {};
-    const repos = await this.repoService.searchRepos(useQuery, sortQuery);
-    return { repos, searchQuery, errors };
+    const records = await this.repoService.searchRepos(useQuery, sortQuery);
+    const totalCount = await this.repoService.count();
+    return { records, totalCount, searchQuery, errors, fields };
   }
 
   @Get('/listLocalRepos')
