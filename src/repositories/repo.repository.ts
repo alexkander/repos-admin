@@ -1,14 +1,19 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
-import { RepoFilterQuery } from 'src/types/remotes.type';
+import { FilterQuery, Model, Types } from 'mongoose';
+import { SortQueryData } from '../types/utils.types';
 import { Repo } from '../schemas/repo.schema';
+import { RepoFilterQuery } from '../types/remotes.type';
 
 @Injectable()
 export class RepoRepository {
   constructor(
     @InjectModel(Repo.name) private readonly RepoModel: Model<Repo>,
   ) { }
+
+  findAll(query: FilterQuery<Repo>, sort: SortQueryData<Repo>) {
+    return this.RepoModel.find(query, undefined, { sort }).lean();
+  }
 
   findById(id: Types.ObjectId) {
     return this.RepoModel.findById(id).lean();

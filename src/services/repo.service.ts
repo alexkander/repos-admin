@@ -5,24 +5,25 @@ import {
 } from '@nestjs/common';
 import * as fs from 'fs';
 import { glob } from 'glob';
-import { Remote } from 'src/schemas/remote.schema';
-import { WithBDId } from 'src/types/utils.types';
+import { FilterQuery, Types } from 'mongoose';
+import { Repo } from '../schemas/repo.schema';
 import { RepoConstants } from '../constants/repo.constants';
 import { FolderRepository } from '../repositories/folder.repository';
 import { RemoteRepository } from '../repositories/remote.repository';
 import { RepoRepository } from '../repositories/repo.repository';
 import { Folder } from '../schemas/folder.schema';
+import { Remote } from '../schemas/remote.schema';
 import {
   FetchLogStatusType,
   RemoteFetchStatus,
   RemoteFilterQuery,
 } from '../types/remotes.type';
 import { ReposComparisonParams } from '../types/repos.types';
+import { SortQueryData, WithBDId } from '../types/utils.types';
 import { GitRepo } from '../utils/gitRepo.class';
 import { routes } from '../utils/routes';
 import { LoggerService } from './logger.service';
 import { RemoteUtilsService } from './remote-utils.service';
-import { Types } from 'mongoose';
 
 @Injectable()
 export class RepoService {
@@ -33,6 +34,10 @@ export class RepoService {
     private readonly folderRepository: FolderRepository,
     private readonly remoteUtilsService: RemoteUtilsService,
   ) { }
+
+  searchRepos(query: FilterQuery<Repo>, sort: SortQueryData<Repo>) {
+    return this.repoRepository.findAll(query, sort);
+  }
 
   async saveLocalRepos() {
     await this.repoRepository.truncate();

@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { GitRemoteType } from 'src/types/gitRepo.types';
 import { RemoteConstants } from '../constants/remote.constants';
+import { Remote } from '../schemas/remote.schema';
+import { GitRemoteType } from '../types/gitRepo.types';
 import { RemoteUrlType } from '../types/remotes.type';
-import { Remote } from 'src/schemas/remote.schema';
 
 @Injectable()
 export class RemoteUtilsService {
@@ -56,9 +56,9 @@ export class RemoteUtilsService {
   normalizeTargetName(targetNameRaw: string) {
     const targetName = targetNameRaw.endsWith(RemoteConstants.gitSuffix)
       ? targetNameRaw.substring(
-          0,
-          targetNameRaw.length - RemoteConstants.gitSuffix.length,
-        )
+        0,
+        targetNameRaw.length - RemoteConstants.gitSuffix.length,
+      )
       : targetNameRaw;
     return targetName;
   }

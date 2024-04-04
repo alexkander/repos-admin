@@ -19,6 +19,7 @@ import { LoggerService } from './services/logger.service';
 import { RemoteService } from './services/remote.service';
 import { RepoService } from './services/repo.service';
 import { RemoteUtilsService } from './services/remote-utils.service';
+import { SearchService } from './services/search.service';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { RemoteUtilsService } from './services/remote-utils.service';
   ],
   providers: [
     LoggerService,
+    SearchService,
     FolderRepository,
     FolderService,
     RepoService,

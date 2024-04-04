@@ -1,0 +1,171 @@
+{{#> layout }} {{> nav }} {{> alerts }}
+<table class="table table-sm">
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>
+        {{#> labelSortBy field='folderKey' value=searchQuery.sort.folder
+        }}folder{{/labelSortBy }}
+      </th>
+      <th>
+        {{#> labelSortBy field='directory'
+        value=searchQuery.sort.directory}}directory{{/labelSortBy }}
+      </th>
+      <th>
+        {{#> labelSortBy field='group'
+        value=searchQuery.sort.group}}group{{/labelSortBy }}
+      </th>
+      <th>
+        {{#> labelSortBy field='localName' value=searchQuery.sort.localName
+        }}name{{/labelSortBy }}
+      </th>
+      <th>
+        {{#> labelSortBy field='isValid' value=searchQuery.sort.isValid }}is
+        valid{{/labelSortBy }}
+      </th>
+      <th>
+        {{#> labelSortBy field='remotes' value=searchQuery.sort.remotes
+        }}remotes{{/labelSortBy }}
+      </th>
+      <th>
+        {{#> labelSortBy field='branches' value=searchQuery.sort.branches
+        }}branches{{/labelSortBy }}
+      </th>
+    </tr>
+    <tr class="app--searchBoxesWrapper">
+      <td></td>
+      <td>
+        {{> inputSearch field='folderKey' value=searchQuery.search.folder }}
+      </td>
+      <td>
+        {{> inputSearch field='directory' value=searchQuery.search.directory }}
+      </td>
+      <td>{{> inputSearch field='group' value=searchQuery.search.group }}</td>
+      <td>
+        {{> inputSearch field='localName' value=searchQuery.search.localName }}
+      </td>
+      <td>
+        {{> inputSearch field='isValid' value=searchQuery.search.isValid }}
+      </td>
+      <td>
+        {{> inputSearch field='remotes' value=searchQuery.search.remotes }}
+      </td>
+      <td>
+        {{> inputSearch field='branches' value=searchQuery.search.branches }}
+      </td>
+    </tr>
+  </thead>
+  <tbody>
+    {{#each repos }}
+    <tr>
+      <td>{{ addOne @index }}</td>
+      <td>{{ folderKey }}</td>
+      <td>{{ directory }}</td>
+      <td>{{ group }}</td>
+      <td>{{ localName }}</td>
+      <td>{{ valid }}</td>
+      <td>{{ remotes }}</td>
+      <td>{{ branches }}</td>
+    </tr>
+    {{/each }}
+  </tbody>
+</table>
+<script>
+  (() => {
+    const queryStringToObject = (queryString) => {
+      const params = new URLSearchParams(queryString);
+      const result = {};
+
+      for (const [key, value] of params.entries()) {
+        const parts = key.split('[');
+        let obj = result;
+        for (let i = 0; i < parts.length; i++) {
+          const currentKey = parts[i].replace(/\]$/, '');
+          if (!obj[currentKey]) {
+            if (i === parts.length - 1) {
+              obj[currentKey] = decodeURIComponent(value);
+            } else {
+              obj[currentKey] = {};
+            }
+          }
+          obj = obj[currentKey];
+        }
+      }
+
+      return result;
+    };
+
+    const objectToQueryString = (obj, parentKey = '') => {
+      let queryString = '';
+
+      for (const key in obj) {
+        if (obj.hasOwnProperty(key)) {
+          const value = obj[key];
+          const encodedKey = parentKey
+            ? `${parentKey}[${encodeURIComponent(key)}]`
+            : encodeURIComponent(key);
+
+          if (typeof value === 'object') {
+            queryString += objectToQueryString(value, encodedKey);
+          } else {
+            if (queryString.length > 0) {
+              queryString += '&';
+            }
+            queryString += `${encodedKey}=${encodeURIComponent(value)}`;
+          }
+        }
+      }
+      return queryString;
+    };
+
+    const newQuery = queryStringToObject(location.search);
+
+    const onInputChange = (event) => {
+      const input = event.target;
+      const text = (input.value || '').trim();
+      newQuery.search = newQuery.search || {};
+      if (!text) {
+        delete newQuery.search[input.name];
+      } else {
+        newQuery.search[input.name] = text;
+      }
+    };
+
+    const onButtonClick = () => {
+      refreshSearch();
+    };
+
+    const refreshSearch = () => {
+      const newQueryString = objectToQueryString(newQuery);
+      location.search = newQueryString;
+    };
+
+    const onSortByClick = function (event) {
+      const label = event.target;
+      const field = label.dataset.field;
+      newQuery.sort = newQuery.sort || {};
+      console.log([event, field, label, label.dataset])
+      if (!newQuery.sort[field]) {
+        newQuery.sort[field] = 'asc';
+      } else if (newQuery.sort[field] === 'asc') {
+        newQuery.sort[field] = 'desc';
+      } else if (newQuery.sort[field] === 'desc') {
+        delete newQuery.sort[field];
+      }
+      refreshSearch();
+    };
+
+    document.querySelectorAll('.app--searchInput').forEach((element) => {
+      element.addEventListener('change', onInputChange);
+    });
+
+    document.querySelectorAll('.app--searchButton').forEach((element) => {
+      element.addEventListener('click', onButtonClick);
+    });
+
+    document.querySelectorAll('.app--sortByLabel').forEach((element) => {
+      element.addEventListener('click', onSortByClick);
+    });
+  })();
+</script>
+{{/layout}}
