@@ -57,9 +57,9 @@ export class RepoController {
     return this.repoService.listLocalRepos();
   }
 
-  @Post('/saveLocalRepos')
-  saveLocalRepos() {
-    return this.repoService.saveLocalRepos();
+  @Post('/sync')
+  sync() {
+    return this.repoService.sync();
   }
 
   @Put('/:id/refresh')

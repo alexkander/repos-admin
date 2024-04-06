@@ -1,7 +1,14 @@
 {{#> layout }}
 {{> nav }}
 {{> alerts }}
-{{> recordsCountLabel totalCount=totalCount records=records }}
+<div class="row">
+  <div class="col">
+    <button class="btn btn-info app--buttonSyncRepo">Sync repos</button>
+  </div>
+  <div class="col">
+    {{> recordsCountLabel totalCount=totalCount records=records }}
+  </div>
+</div>
 {{> tableSearch
   fields=fields
   searchQuery=searchQuery
@@ -9,4 +16,5 @@
   allowSearch=true
   allowSort=true
 }}
+<script src="js/buttonSyncRepo.js"></script>
 {{/layout}}

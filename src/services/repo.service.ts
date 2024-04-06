@@ -42,7 +42,7 @@ export class RepoService {
     return this.repoRepository.findAll(query, sort);
   }
 
-  async saveLocalRepos() {
+  async sync() {
     await this.repoRepository.truncate();
     const localRepos = await this.listLocalRepos();
     const createPromises = localRepos.map((repo) => {
