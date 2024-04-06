@@ -33,7 +33,7 @@ export class RemoteController {
   ) { }
 
   @Get('/')
-  @Render('list-records.hbs')
+  @Render('remote/index.hbs')
   async tableRepos(@Query() query: TableQueryParams<Remote>) {
     const searchQuery = { search: {}, sort: {}, ...query };
     const errors = this.searchService.validateSearchParams(

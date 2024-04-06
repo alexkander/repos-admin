@@ -36,7 +36,7 @@ export class RepoController {
   ) { }
 
   @Get('/')
-  @Render('list-records.hbs')
+  @Render('repos/index.hbs')
   async tableRepos(@Query() query: TableQueryParams<Repo>) {
     const searchQuery = { search: {}, sort: {}, ...query };
     const errors = this.searchService.validateSearchParams(

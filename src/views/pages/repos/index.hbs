@@ -1,0 +1,12 @@
+{{#> layout }}
+{{> nav }}
+{{> alerts }}
+{{> recordsCountLabel totalCount=totalCount records=records }}
+{{> tableSearch
+  fields=fields
+  searchQuery=searchQuery
+  records=records
+  allowSearch=true
+  allowSort=true
+}}
+{{/layout}}

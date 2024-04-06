@@ -9,6 +9,10 @@ export class FolderRepository {
     @InjectModel(Folder.name) private readonly FolderModel: Model<Folder>,
   ) { }
 
+  count() {
+    return this.FolderModel.countDocuments();
+  }
+
   all() {
     return this.FolderModel.find().lean();
   }

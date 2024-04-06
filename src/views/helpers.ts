@@ -2,7 +2,7 @@ export const addOne = (num: number) => {
   return num + 1;
 };
 
-export const jsonStringify = JSON.stringify;
+export const jsonStringify = (str: string) => JSON.stringify(str, null, 2);
 
 export const eeq = (v1, v2) => v1 === v2;
 

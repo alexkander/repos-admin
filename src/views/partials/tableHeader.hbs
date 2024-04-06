@@ -1,0 +1,11 @@
+{{#each fields}}
+<th>
+  {{#if ../allowSort }}
+  {{#> labelSortBy field=field value=(prop field ../sortValues) }}
+  {{ text }}
+  {{/labelSortBy}}
+  {{else }}
+  {{ text }}
+  {{/if }}
+</th>
+{{/each}}

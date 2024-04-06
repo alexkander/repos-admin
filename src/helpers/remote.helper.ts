@@ -1,14 +1,12 @@
-import { Injectable } from '@nestjs/common';
 import { RemoteConstants } from '../constants/remote.constants';
 import { Remote } from '../schemas/remote.schema';
 import { GitRemoteType } from '../types/gitRepo.types';
 import { RemoteUrlType } from '../types/remotes.type';
 
-@Injectable()
-export class RemoteUtilsService {
+export class RemoteHelper {
   constructor() { }
 
-  gitRepoToBdRepo({
+  static gitRepoToBdRepo({
     gitRemote,
     directory,
     folderKey,
@@ -30,7 +28,7 @@ export class RemoteUtilsService {
     };
   }
 
-  parseTargetInfo(url: string) {
+  static parseTargetInfo(url: string) {
     const array = [
       { regexp: RemoteConstants.UrlRegex.https, urlType: RemoteUrlType.HTTPS },
       { regexp: RemoteConstants.UrlRegex.http, urlType: RemoteUrlType.HTTP },
@@ -53,12 +51,10 @@ export class RemoteUtilsService {
     };
   }
 
-  normalizeTargetName(targetNameRaw: string) {
+  static normalizeTargetName(targetNameRaw: string) {
+    const len = targetNameRaw.length - RemoteConstants.gitSuffix.length;
     const targetName = targetNameRaw.endsWith(RemoteConstants.gitSuffix)
-      ? targetNameRaw.substring(
-        0,
-        targetNameRaw.length - RemoteConstants.gitSuffix.length,
-      )
+      ? targetNameRaw.substring(0, len)
       : targetNameRaw;
     return targetName;
   }

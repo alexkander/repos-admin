@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { FilterQuery } from 'mongoose';
+import { RemoteHelper } from '../helpers/remote.helper';
 import { FolderRepository } from '../repositories/folder.repository';
 import { RemoteRepository } from '../repositories/remote.repository';
 import { RepoRepository } from '../repositories/repo.repository';
@@ -8,7 +9,6 @@ import { SortQueryData } from '../types/utils.types';
 import { GitRepo } from '../utils/gitRepo.class';
 import { routes } from '../utils/routes';
 import { LoggerService } from './logger.service';
-import { RemoteUtilsService } from './remote-utils.service';
 
 @Injectable()
 export class RemoteService {
@@ -17,7 +17,6 @@ export class RemoteService {
     private readonly remoteRepository: RemoteRepository,
     private readonly repoRepository: RepoRepository,
     private readonly folderRepository: FolderRepository,
-    private readonly remoteUtilsService: RemoteUtilsService,
   ) { }
 
   count() {
@@ -52,7 +51,7 @@ export class RemoteService {
         const repo = new GitRepo(gitDirectory);
         const remotesData = await repo.getRemotes();
         const remotes = remotesData.map((gitRemote) => {
-          return this.remoteUtilsService.gitRepoToBdRepo({
+          return RemoteHelper.gitRepoToBdRepo({
             gitRemote,
             folderKey: folder.folderKey,
             directory: repository.directory,

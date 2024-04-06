@@ -1,11 +1,20 @@
 import { Injectable } from '@nestjs/common';
 import { configuration } from '../configuration/configuration';
 import { FolderRepository } from '../repositories/folder.repository';
+import { Folder } from '../schemas/folder.schema';
 import { routes } from '../utils/routes';
 
 @Injectable()
 export class FolderService {
   constructor(private readonly folderRepository: FolderRepository) { }
+
+  count() {
+    return this.folderRepository.count();
+  }
+
+  async create(data: Folder) {
+    return this.folderRepository.create(data);
+  }
 
   listEnvFolder() {
     return configuration.FOLDERS.map((folder) => {
