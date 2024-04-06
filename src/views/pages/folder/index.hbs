@@ -1,10 +1,44 @@
-{{#> layout }}
-{{> nav }}
-{{> alerts }}
-{{> recordsCountLabel totalCount=totalCount records=records }}
-{{> tableSearch
-  fields=fields
-  searchQuery=searchQuery
-  records=records
-}}
+{{#> layout }} {{> nav }} {{> alerts }} {{> recordsCountLabel
+totalCount=totalCount records=records }} {{> tableSearch fields=fields
+searchQuery=searchQuery records=records }}
+
+<form class="card app--formRegistryFolder" style="width: 24rem">
+  <div class="card-header">registry a folder</div>
+  <div class="card-body">
+    <div class="row mb-2">
+      <div class="col-3">
+        <label for="inputKey" class="col-form-label">key</label>
+      </div>
+      <div class="col-9">
+        <input
+          type="text"
+          name="folderKey"
+          class="form-control"
+          id="inputKey"
+          aria-describedby="keyHelp"
+        />
+        <span id="inputKeyHelp" class="form-text">key identifier for the folder</span>
+      </div>
+    </div>
+    <div class="row mb-2">
+      <div class="col-3">
+        <label for="inputPath" class="col-form-label">path</label>
+      </div>
+      <div class="col-9">
+        <input
+          type="text"
+          name="folderPath"
+          class="form-control"
+          id="inputPath"
+          aria-describedby="keyHelp"
+        />
+        <span id="inputPathHelp" class="form-text">directory to search repositories</span>
+      </div>
+    </div>
+  </div>
+  <div class="card-footer">
+    <button type="submit" class="btn btn-primary">registry</button>
+  </div>
+</form>
+<script src="js/formRegistryFolder.js"></script>
 {{/layout}}

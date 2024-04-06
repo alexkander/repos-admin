@@ -1,7 +1,14 @@
-import { Body, Controller, Get, Post, Render } from '@nestjs/common';
-import { FolderService } from '../services/folder.service';
-import { FolderCreatePayload } from 'src/types/folder.types';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Render,
+  ValidationPipe,
+} from '@nestjs/common';
 import { FolderHelper } from 'src/helpers/folder.helper';
+import { FolderService } from '../services/folder.service';
+import { FolderCreatePayload } from 'src/dtos/folder.dto';
 
 const fields = [
   { field: 'folderKey', text: 'key' },
@@ -16,13 +23,13 @@ export class FolderController {
   @Render('folder/index.hbs')
   async tableFolder() {
     const searchQuery = { search: {}, sort: {} };
-    const records = await this.folderService.listEnvFolder();
+    const records = await this.folderService.searchRepos();
     const totalCount = await this.folderService.count();
     return { records, totalCount, searchQuery, errors: [], fields };
   }
 
   @Post('/')
-  create(@Body() payload: FolderCreatePayload) {
+  create(@Body(ValidationPipe) payload: FolderCreatePayload) {
     const folder = FolderHelper.folderCreatePayloadToFolder(payload);
     return this.folderService.create(folder);
   }

@@ -16,6 +16,10 @@ export class FolderService {
     return this.folderRepository.create(data);
   }
 
+  searchRepos() {
+    return this.folderRepository.all();
+  }
+
   listEnvFolder() {
     return configuration.FOLDERS.map((folder) => {
       const [folderKey, ...folderPath] = folder.trim().split(':');
