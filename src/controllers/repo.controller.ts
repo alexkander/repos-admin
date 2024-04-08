@@ -56,6 +56,11 @@ export class RepoController {
     return this.repoService.sync();
   }
 
+  @Post('/:id/sync')
+  syncById(@Param('id') id: Types.ObjectId) {
+    return this.repoService.syncById(id);
+  }
+
   @Put('/:id/refresh')
   refresh(@Param('id') id: Types.ObjectId) {
     return this.repoService.refresh(id);

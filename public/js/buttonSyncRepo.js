@@ -1,21 +1,20 @@
 (() => {
-  const newQuery = AppHelpers.queryStringToObject(location.search);
-
   const onButtonClick = (event) => {
     event.preventDefault();
     const button = event.target;
     button.disabled = true;
     const options = { method: 'POST' };
-    fetch('/repo/sync ', options)
+    const query = AppHelpers.queryStringToObject(location.search);
+    fetch('/repo/sync', options)
       .then(async (res) => {
         const data = await res.json();
         console.log(data);
-        newQuery.msg = 'Repos synchronized';
-        // location.search = AppHelpers.objectToQueryString(newQuery);
+        query.success = `${data.length} repos synchronized`;
+        // location.search = AppHelpers.objectToQueryString(query);
       })
       .catch(() => {
-        // newQuery.msg = 'Repos synchronized';
-        // location.search = AppHelpers.objectToQueryString(newQuery);
+        query.fail = 'Error synchronizing repos';
+        // location.search = AppHelpers.objectToQueryString(query);
       })
       .finally(() => {
         button.disabled = true;

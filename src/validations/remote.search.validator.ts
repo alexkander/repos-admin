@@ -1,6 +1,10 @@
 import * as Joi from 'joi';
 
 export const remoteSearchValidation = Joi.object({
+  // TODO: find a better way for the messages and remove
+  success: Joi.string().optional(),
+  fails: Joi.string().optional(),
+  // END
   search: Joi.object({
     directory: Joi.string().optional(),
     name: Joi.string().optional(),

@@ -46,5 +46,19 @@
     return queryString;
   };
 
+  AppHelpers.showSuccessMessage = (msg) => {
+    const query = AppHelpers.queryStringToObject(location.search);
+    query.success = msg;
+    delete query.fail;
+    location.search = AppHelpers.objectToQueryString(query);
+  };
+
+  AppHelpers.showFailsMessage = (msg) => {
+    const query = AppHelpers.queryStringToObject(location.search);
+    query.fails = msg;
+    delete query.success;
+    location.search = AppHelpers.objectToQueryString(query);
+  };
+
   window.AppHelpers = AppHelpers;
 })();

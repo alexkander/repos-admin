@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { FilterQuery, Model, Types } from 'mongoose';
-import { SortQueryData } from '../types/utils.types';
 import { Repo } from '../schemas/repo.schema';
 import { RepoFilterQuery } from '../types/remotes.type';
+import { SortQueryData } from '../types/utils.types';
 
 @Injectable()
 export class RepoRepository {
@@ -33,6 +33,16 @@ export class RepoRepository {
 
   async create(data: Repo) {
     return this.RepoModel.create(data);
+  }
+
+  async upsertByDirectory(data: Repo) {
+    const cond = { directory: data.directory };
+    const repo = await this.RepoModel.findOne(cond);
+    if (!repo) {
+      return this.create(data);
+    }
+    return repo.updateOne(data);
+    // return repo.save();
   }
 
   truncate() {

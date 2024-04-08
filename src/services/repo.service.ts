@@ -59,31 +59,30 @@ export class RepoService {
     baseDirectory: string;
   }) {
     this.logger.doLog(`sync repo in: ${directory}`);
-    const repoDirectory = routes.relative(baseDirectory, directory);
-    const group = routes.dirname(repoDirectory);
-    const localName = routes.basename(repoDirectory);
-    const repo = new GitRepo(directory);
-    const valid = await repo.isRepo();
-    const remotes = valid ? await repo.getRemotes() : [];
-    const branches = valid ? await repo.getBranches() : [];
-    const repoData: Repo = {
-      directory: repoDirectory,
-      group,
-      localName,
-      valid,
-      remotes: remotes.length,
-      branches: branches.length,
-    };
-    const repoCreated = await this.repoRepository.create(repoData);
+    const repoData = await RepoHelper.getRepoDataFromDirectory({
+      baseDirectory,
+      directory,
+    });
+    const repoCreated = await this.repoRepository.upsertByDirectory(repoData);
     return repoCreated;
   }
 
-  async forEachRepositoryIn({
+  async syncById(id: Types.ObjectId) {
+    const baseDirectory = RepoHelper.getRealGitDirectory();
+    const repo = await this.repoRepository.findById(id);
+    const synchedRepo = await this.syncRepoIn({
+      directory: routes.resolve(baseDirectory, repo.directory),
+      baseDirectory,
+    });
+    return synchedRepo;
+  }
+
+  async forEachRepositoryIn<T>({
     directory,
     callback,
   }: {
     directory: string;
-    callback: (directory: string) => Promise<Repo>;
+    callback: (directory: string) => Promise<T>;
   }) {
     const allSubDirectories = await RepoHelper.getSubDirectories(directory);
     const subDirectories = allSubDirectories.filter((d) => {
@@ -92,7 +91,7 @@ export class RepoService {
       );
     });
 
-    const createdRepos: Repo[] = [];
+    const resultArray: T[] = [];
 
     for (const subDirectory of subDirectories) {
       const itemDirectory = routes.resolve(directory, subDirectory);
@@ -102,14 +101,14 @@ export class RepoService {
           directory: itemDirectory,
           callback,
         });
-        createdRepos.push(...nestedRepos);
+        resultArray.push(...nestedRepos);
         continue;
       }
-      const repoCreated = await callback(itemDirectory);
-      createdRepos.push(repoCreated);
+      const resultItem = await callback(itemDirectory);
+      resultArray.push(resultItem);
     }
 
-    return createdRepos;
+    return resultArray;
   }
 
   async refresh(id: Types.ObjectId) {
