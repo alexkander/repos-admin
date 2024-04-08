@@ -51,11 +51,6 @@ export class RepoController {
     return { records, totalCount, searchQuery, errors, fields };
   }
 
-  @Get('/listLocalRepos')
-  listLocalRepos() {
-    return this.repoService.listLocalRepos();
-  }
-
   @Post('/sync')
   sync() {
     return this.repoService.sync();

@@ -1,6 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import * as fs from 'fs';
-import { glob } from 'glob';
 import { FilterQuery, Types } from 'mongoose';
 import { RepoHelper } from 'src/helpers/repo.helper';
 import { RepoConstants } from '../constants/repo.constants';
@@ -37,22 +36,80 @@ export class RepoService {
   }
 
   async sync() {
+    this.logger.doLog('starts synchronization of all repo');
     await this.repoRepository.truncate();
-    const localRepos = await this.listLocalRepos();
-    const createPromises = localRepos.map((repo) => {
-      return this.repoRepository.create(repo);
+    const baseDirectory = RepoHelper.getRealGitDirectory();
+    const createdRepos = await this.forEachRepositoryIn({
+      directory: baseDirectory,
+      callback: (directory) => {
+        return this.syncRepoIn({ directory, baseDirectory });
+      },
     });
-    const records = Promise.all(createPromises);
-    return records;
+    this.logger.doLog(
+      `ends synchronization of all repo: ${createdRepos.length}`,
+    );
+    return createdRepos;
   }
 
-  async listLocalRepos() {
-    const baseDirectory = RepoHelper.getRealGitDirectory();
-    const allFiles = await this.getReposInDirectory(
-      baseDirectory,
-      baseDirectory,
-    );
-    return allFiles;
+  async syncRepoIn({
+    directory,
+    baseDirectory,
+  }: {
+    directory: string;
+    baseDirectory: string;
+  }) {
+    this.logger.doLog(`sync repo in: ${directory}`);
+    const repoDirectory = routes.relative(baseDirectory, directory);
+    const group = routes.dirname(repoDirectory);
+    const localName = routes.basename(repoDirectory);
+    const repo = new GitRepo(directory);
+    const valid = await repo.isRepo();
+    const remotes = valid ? await repo.getRemotes() : [];
+    const branches = valid ? await repo.getBranches() : [];
+    const repoData: Repo = {
+      directory: repoDirectory,
+      group,
+      localName,
+      valid,
+      remotes: remotes.length,
+      branches: branches.length,
+    };
+    const repoCreated = await this.repoRepository.create(repoData);
+    return repoCreated;
+  }
+
+  async forEachRepositoryIn({
+    directory,
+    callback,
+  }: {
+    directory: string;
+    callback: (directory: string) => Promise<Repo>;
+  }) {
+    const allSubDirectories = await RepoHelper.getSubDirectories(directory);
+    const subDirectories = allSubDirectories.filter((d) => {
+      return !RepoConstants.ignoreDirectories.find((regex) =>
+        d.match(new RegExp(regex)),
+      );
+    });
+
+    const createdRepos: Repo[] = [];
+
+    for (const subDirectory of subDirectories) {
+      const itemDirectory = routes.resolve(directory, subDirectory);
+      const gitDirectory = routes.resolve(itemDirectory, '.git');
+      if (!fs.existsSync(gitDirectory)) {
+        const nestedRepos = await this.forEachRepositoryIn({
+          directory: itemDirectory,
+          callback,
+        });
+        createdRepos.push(...nestedRepos);
+        continue;
+      }
+      const repoCreated = await callback(itemDirectory);
+      createdRepos.push(repoCreated);
+    }
+
+    return createdRepos;
   }
 
   async refresh(id: Types.ObjectId) {
@@ -85,53 +142,6 @@ export class RepoService {
       };
     });
     return remotes;
-  }
-
-  async getReposInDirectory(directory: string, baseDirectory: string) {
-    const allSubDirectories = await this.getSubDirectories(directory);
-    const subDirectories = allSubDirectories.filter((d) => {
-      return !RepoConstants.ignoreDirectories.find((regex) =>
-        d.match(new RegExp(regex)),
-      );
-    });
-
-    const reposPromises = subDirectories.map(async (subDirectory) => {
-      const itemDirectory = routes.resolve(directory, subDirectory);
-      const gitDirectory = routes.resolve(itemDirectory, '.git');
-      if (!fs.existsSync(gitDirectory)) {
-        return this.getReposInDirectory(itemDirectory, baseDirectory);
-      }
-      const repoDirectory = routes.relative(baseDirectory, itemDirectory);
-      const group = routes.dirname(repoDirectory);
-      const localName = routes.basename(repoDirectory);
-      const gitRepoDirectory = routes.join(baseDirectory, repoDirectory);
-      const repo = new GitRepo(gitRepoDirectory);
-      const valid = await repo.isRepo();
-      const remotes = valid ? await repo.getRemotes() : [];
-      const branches = valid ? await repo.getBranches() : [];
-      const data = {
-        directory: repoDirectory,
-        group,
-        localName,
-        valid,
-        remotes: remotes.length,
-        branches: branches.length,
-      };
-      return [data];
-    });
-
-    const repos = (await Promise.all(reposPromises)).flatMap((f) => f);
-
-    return repos;
-  }
-
-  async getSubDirectories(directory: string) {
-    const subDirectories = await glob(RepoConstants.pattern, {
-      cwd: directory,
-    });
-    return subDirectories.map((subDir) => {
-      return subDir.split('\\').join('/');
-    });
   }
 
   async gitFetch(type: string) {
