@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { FilterQuery } from 'mongoose';
+import { configuration } from 'src/configuration/configuration';
+import { RepoHelper } from 'src/helpers/repo.helper';
 import { RemoteHelper } from '../helpers/remote.helper';
-import { FolderRepository } from '../repositories/folder.repository';
 import { RemoteRepository } from '../repositories/remote.repository';
 import { RepoRepository } from '../repositories/repo.repository';
 import { Remote } from '../schemas/remote.schema';
@@ -16,7 +17,6 @@ export class RemoteService {
     private readonly logger: LoggerService,
     private readonly remoteRepository: RemoteRepository,
     private readonly repoRepository: RepoRepository,
-    private readonly folderRepository: FolderRepository,
   ) { }
 
   count() {
@@ -38,29 +38,17 @@ export class RemoteService {
   }
 
   async listLocalRemotes() {
-    const folders = await this.folderRepository.all();
-    const remotesPromises = folders.map(async (folder) => {
-      const repositories = await this.repoRepository.findValidReposByFolderKey(
-        folder.folderKey,
-      );
-      const remotesPromises = repositories.map(async (repository) => {
-        const gitDirectory = routes.join(
-          folder.folderPath,
-          repository.directory,
-        );
-        const repo = new GitRepo(gitDirectory);
-        const remotesData = await repo.getRemotes();
-        const remotes = remotesData.map((gitRemote) => {
-          return RemoteHelper.gitRepoToBdRepo({
-            gitRemote,
-            folderKey: folder.folderKey,
-            directory: repository.directory,
-          });
+    const repositories = await this.repoRepository.findValidRepos();
+    const remotesPromises = repositories.map(async (repository) => {
+      const gitDirectory = RepoHelper.getRealGitDirectory(repository.directory);
+      const repo = new GitRepo(gitDirectory);
+      const remotesData = await repo.getRemotes();
+      const remotes = remotesData.map((gitRemote) => {
+        return RemoteHelper.gitRepoToBdRepo({
+          gitRemote,
+          directory: repository.directory,
         });
-        return remotes;
       });
-
-      const remotes = (await Promise.all(remotesPromises)).flatMap((r) => r);
       return remotes;
     });
 
@@ -79,7 +67,6 @@ export class RemoteService {
         (b) => !b.descendants.length,
       );
       return {
-        folderKey: remote.folderKey,
         directory: remote.directory,
         remote: remote.name,
         url: remote.url,
@@ -115,7 +102,6 @@ export class RemoteService {
         (b) => !b.descendants.length,
       );
       return {
-        folderKey: remote.folderKey,
         directory: remote.directory,
         remote: remote.name,
         url: remote.url,
@@ -135,11 +121,7 @@ export class RemoteService {
 
     for (let idx = 0; idx < remotesWithDescendants.length; idx++) {
       const remoteToRemove = remotesWithDescendants[idx];
-      const folder = await this.folderRepository.findOneByKey(
-        remoteToRemove.folderKey,
-      );
-      const gitDirectory = routes.join(
-        folder.folderPath,
+      const gitDirectory = RepoHelper.getRealGitDirectory(
         remoteToRemove.directory,
       );
       const gitRepo = new GitRepo(gitDirectory);
@@ -163,8 +145,7 @@ export class RemoteService {
   }
 
   async getCompareSummaryBranches(remote: Remote) {
-    const folder = await this.folderRepository.findOneByKey(remote.folderKey);
-    const gitDirectory = routes.join(folder.folderPath, remote.directory);
+    const gitDirectory = RepoHelper.getRealGitDirectory(remote.directory);
     const gitRepo = new GitRepo(gitDirectory);
     const branches = await gitRepo.getBranches();
     const remoteBranches = branches.filter((b) => b.remote === remote.name);

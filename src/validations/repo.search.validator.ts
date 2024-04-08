@@ -2,7 +2,6 @@ import * as Joi from 'joi';
 
 export const repoSearchValidation = Joi.object({
   search: Joi.object({
-    folderKey: Joi.string().optional(),
     directory: Joi.string().optional(),
     group: Joi.string().optional(),
     localName: Joi.string().optional(),
@@ -11,7 +10,6 @@ export const repoSearchValidation = Joi.object({
     branches: Joi.number().optional(),
   }).optional(),
   sort: Joi.object({
-    folderKey: Joi.string().lowercase().valid('asc', 'desc').optional(),
     directory: Joi.string().lowercase().valid('asc', 'desc').optional(),
     group: Joi.string().lowercase().valid('asc', 'desc').optional(),
     localName: Joi.string().lowercase().valid('asc', 'desc').optional(),

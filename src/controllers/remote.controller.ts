@@ -14,7 +14,6 @@ import { TableQueryParams } from '../types/utils.types';
 import { remoteSearchValidation } from '../validations/remote.search.validator';
 
 const fields = [
-  { field: 'folderKey', text: 'folder' },
   { field: 'directory', text: 'directory' },
   { field: 'name', text: 'name' },
   { field: 'rare', text: 'rare' },

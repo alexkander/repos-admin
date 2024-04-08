@@ -5,7 +5,6 @@ export type RepoDocument = HydratedDocument<Repo>;
 
 @Schema()
 export class Repo {
-  @Prop() folderKey: string;
   @Prop() directory: string;
   @Prop() group: string;
   @Prop() localName: string;

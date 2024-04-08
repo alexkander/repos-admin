@@ -23,16 +23,12 @@ export class RepoRepository {
     return this.RepoModel.findById(id).lean();
   }
 
-  findOneByRepo({ directory, folderKey }: RepoFilterQuery) {
-    return this.RepoModel.findOne({ directory, folderKey, valid: true }).lean();
+  findOneByRepo({ directory }: RepoFilterQuery) {
+    return this.RepoModel.findOne({ directory, valid: true }).lean();
   }
 
   findValidRepos() {
     return this.RepoModel.find({ valid: true }).lean();
-  }
-
-  findValidReposByFolderKey(folderKey: string) {
-    return this.RepoModel.find({ folderKey, valid: true }).lean();
   }
 
   async create(data: Repo) {

@@ -1,17 +1,12 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import * as fs from 'fs';
 import { glob } from 'glob';
 import { FilterQuery, Types } from 'mongoose';
+import { RepoHelper } from 'src/helpers/repo.helper';
 import { RepoConstants } from '../constants/repo.constants';
 import { RemoteHelper } from '../helpers/remote.helper';
-import { FolderRepository } from '../repositories/folder.repository';
 import { RemoteRepository } from '../repositories/remote.repository';
 import { RepoRepository } from '../repositories/repo.repository';
-import { Folder } from '../schemas/folder.schema';
 import { Remote } from '../schemas/remote.schema';
 import { Repo } from '../schemas/repo.schema';
 import {
@@ -31,7 +26,6 @@ export class RepoService {
     private readonly logger: LoggerService,
     private readonly repoRepository: RepoRepository,
     private readonly remoteRepository: RemoteRepository,
-    private readonly folderRepository: FolderRepository,
   ) { }
 
   count() {
@@ -53,27 +47,21 @@ export class RepoService {
   }
 
   async listLocalRepos() {
-    const directories = await this.folderRepository.all();
-    const allFilesPromises = directories.map((folder) => {
-      return this.getReposInDirectory(folder.folderPath, folder);
-    });
-    const allFiles = (await Promise.all(allFilesPromises)).flatMap((f) => f);
-
+    const baseDirectory = RepoHelper.getRealGitDirectory();
+    const allFiles = await this.getReposInDirectory(
+      baseDirectory,
+      baseDirectory,
+    );
     return allFiles;
   }
 
   async refresh(id: Types.ObjectId) {
     const repo = await this.repoRepository.findById(id);
-    const folder = await this.folderRepository.findOneByKey(repo.folderKey);
-    const gitRemotes = await this.getRemotesFromGitRepo({
-      folder,
-      directory: repo.directory,
-    });
+    const gitRemotes = await this.getRemotesFromGitRepo(repo.directory);
     const bdRemotes = await this.remoteRepository.findByRepo(repo);
     const upsertPromises = gitRemotes.map((gitRemote) => {
       const remoteData = RemoteHelper.gitRepoToBdRepo({
         gitRemote,
-        folderKey: folder.folderKey,
         directory: repo.directory,
       });
       const bdRemote = bdRemotes.find((r) => r.name === remoteData.name);
@@ -86,19 +74,12 @@ export class RepoService {
     return results;
   }
 
-  async getRemotesFromGitRepo({
-    folder,
-    directory,
-  }: {
-    folder: Folder;
-    directory: string;
-  }) {
-    const gitDirectory = routes.join(folder.folderPath, directory);
+  async getRemotesFromGitRepo(directory: string) {
+    const gitDirectory = RepoHelper.getRealGitDirectory(directory);
     const repo = new GitRepo(gitDirectory);
     const remotesData = await repo.getRemotes();
     const remotes = remotesData.map((item) => {
       return {
-        folderKey: folder.folderKey,
         directory,
         ...item,
       };
@@ -106,7 +87,7 @@ export class RepoService {
     return remotes;
   }
 
-  async getReposInDirectory(directory: string, folder: Folder) {
+  async getReposInDirectory(directory: string, baseDirectory: string) {
     const allSubDirectories = await this.getSubDirectories(directory);
     const subDirectories = allSubDirectories.filter((d) => {
       return !RepoConstants.ignoreDirectories.find((regex) =>
@@ -118,18 +99,17 @@ export class RepoService {
       const itemDirectory = routes.resolve(directory, subDirectory);
       const gitDirectory = routes.resolve(itemDirectory, '.git');
       if (!fs.existsSync(gitDirectory)) {
-        return this.getReposInDirectory(itemDirectory, folder);
+        return this.getReposInDirectory(itemDirectory, baseDirectory);
       }
-      const repoDirectory = routes.relative(folder.folderPath, itemDirectory);
+      const repoDirectory = routes.relative(baseDirectory, itemDirectory);
       const group = routes.dirname(repoDirectory);
       const localName = routes.basename(repoDirectory);
-      const gitRepoDirectory = routes.join(folder.folderPath, repoDirectory);
+      const gitRepoDirectory = routes.join(baseDirectory, repoDirectory);
       const repo = new GitRepo(gitRepoDirectory);
       const valid = await repo.isRepo();
       const remotes = valid ? await repo.getRemotes() : [];
       const branches = valid ? await repo.getBranches() : [];
       const data = {
-        folderKey: folder.folderKey,
         directory: repoDirectory,
         group,
         localName,
@@ -155,7 +135,6 @@ export class RepoService {
   }
 
   async gitFetch(type: string) {
-    const getFolder = this.folderRepository.buildCache();
     const remotes = await this.remoteRepository.all();
     const fetchResults = [];
     const remotesFilter = remotes.filter((r) => this.remoteFilter(type, r));
@@ -167,8 +146,7 @@ export class RepoService {
       this.logger.doLog(
         `- remote ${idxRemote + 1} of ${remotesFilter.length} (${remote.name}): ${remote.url}`,
       );
-      const { folderPath } = await getFolder(remote.folderKey);
-      const fetchResult = await this.fetchRemotesFromRepo(folderPath, remote);
+      const fetchResult = await this.fetchRemotesFromRepo(remote);
       fetchResults.push(fetchResult);
     }
 
@@ -191,11 +169,10 @@ export class RepoService {
     return true;
   }
 
-  async fetchRemotesFromRepo(folderPath: string, remote: Remote) {
-    const gitDirectory = routes.join(folderPath, remote.directory);
+  async fetchRemotesFromRepo(remote: Remote) {
+    const gitDirectory = RepoHelper.getRealGitDirectory(remote.directory);
     const gitRepo = new GitRepo(gitDirectory);
     const filter: RemoteFilterQuery = {
-      folderKey: remote.folderKey,
       directory: remote.directory,
       name: remote.name,
     };
@@ -215,16 +192,11 @@ export class RepoService {
   }
 
   async compareRepos(params: ReposComparisonParams) {
-    const { folderKeyFrom, folderKeyTo, directoryFrom, directoryTo } = params;
-
-    const [folderFrom, folderTo] = await this.validateFoldersByKeys([
-      folderKeyFrom,
-      folderKeyTo,
-    ]);
+    const { directoryFrom, directoryTo } = params;
 
     const [gitRepoFrom, gitRepoTo] = await this.validateGitRepos([
-      routes.join(folderFrom.folderPath, directoryFrom),
-      routes.join(folderTo.folderPath, directoryTo),
+      RepoHelper.getRealGitDirectory(directoryFrom),
+      RepoHelper.getRealGitDirectory(directoryTo),
     ]);
 
     const [branchesFrom, branchesTo] = await Promise.all([
@@ -260,17 +232,6 @@ export class RepoService {
     );
 
     return noDescendantsBranchesFrom;
-  }
-
-  validateFoldersByKeys(foldersKeys: string[]) {
-    const promises = foldersKeys.map(async (folderKey) => {
-      const folder = await this.folderRepository.findOneByKey(folderKey);
-      if (!folder) {
-        throw new NotFoundException(`folder ${folderKey} not found`);
-      }
-      return folder;
-    });
-    return Promise.all(promises);
   }
 
   validateGitRepos(directories: string[]) {

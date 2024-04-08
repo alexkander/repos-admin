@@ -6,7 +6,6 @@ export type RemoteDocument = HydratedDocument<Remote>;
 
 @Schema()
 export class Remote {
-  @Prop() folderKey: string;
   @Prop() directory: string;
   @Prop() name: string;
   @Prop() url: string;

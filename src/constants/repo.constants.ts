@@ -4,5 +4,5 @@ export const RepoConstants = {
 };
 
 export const RepoControllerConstants = {
-  compareWithExtractor: /^([^:|]*):([^:|]*)::([^:|]*):([^:|]*)$/g,
+  compareWithExtractor: /^([^:|]*)::([^:|]*)$/g,
 };

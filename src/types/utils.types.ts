@@ -25,24 +25,3 @@ export type TableQueryParams<T> = {
   search: FilterQueryParams<T>;
   sort: SortQueryParams<T>;
 };
-
-export type TableQueryParams1 = {
-  search: {
-    folderKey: string;
-    directory: string;
-    group: string;
-    localName: string;
-    valid: boolean;
-    remotes: number;
-    branches: number;
-  };
-  sort: {
-    folderKey: 'asc' | 'desc';
-    directory: 'asc' | 'desc';
-    group: 'asc' | 'desc';
-    localName: 'asc' | 'desc';
-    valid: 'asc' | 'desc';
-    remotes: 'asc' | 'desc';
-    branches: 'asc' | 'desc';
-  };
-};

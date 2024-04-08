@@ -15,7 +15,6 @@ export default [
       },
       errors: {
         $push: {
-          folderKey: "$folderKey",
           directory: "$directory",
           remote: "$name",
         },

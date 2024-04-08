@@ -12,12 +12,10 @@ export enum RemoteUrlType {
 }
 
 export type RepoFilterQuery = {
-  folderKey: string;
   directory: string;
 };
 
 export type RemoteFilterQuery = {
-  folderKey: string;
   directory: string;
   name: string;
 };

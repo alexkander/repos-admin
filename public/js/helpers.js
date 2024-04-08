@@ -35,7 +35,7 @@
           : encodeURIComponent(key);
 
         if (typeof value === 'object') {
-          const subQueryString = objectToQueryString(value, encodedKey);
+          const subQueryString = AppHelpers.objectToQueryString(value, encodedKey);
           queryString += subQueryString ? `${sep}${subQueryString}` : '';
         } else {
           queryString += `${sep}${encodedKey}=${encodeURIComponent(value)}`;

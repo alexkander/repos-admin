@@ -19,7 +19,6 @@ import { TableQueryParams } from '../types/utils.types';
 import { repoSearchValidation } from '../validations/repo.search.validator';
 
 const fields = [
-  { field: 'folderKey', text: 'folder' },
   { field: 'directory', text: 'directory' },
   { field: 'group', text: 'group' },
   { field: 'localName', text: 'name' },
@@ -80,11 +79,9 @@ export class RepoController {
     if (!matches) {
       throw new BadRequestException('bad request');
     }
-    const [, folderKeyFrom, directoryFrom, folderKeyTo, directoryTo] = matches;
+    const [, directoryFrom, directoryTo] = matches;
     return this.repoService.compareRepos({
-      folderKeyFrom,
       directoryFrom,
-      folderKeyTo,
       directoryTo,
     });
   }

@@ -2,7 +2,6 @@ import * as Joi from 'joi';
 
 export const remoteSearchValidation = Joi.object({
   search: Joi.object({
-    folderKey: Joi.string().optional(),
     directory: Joi.string().optional(),
     name: Joi.string().optional(),
     rare: Joi.string().optional(),
@@ -14,7 +13,6 @@ export const remoteSearchValidation = Joi.object({
     fetchStatus: Joi.string().optional(),
   }).optional(),
   sort: Joi.object({
-    folderKey: Joi.string().lowercase().valid('asc', 'desc').optional(),
     directory: Joi.string().lowercase().valid('asc', 'desc').optional(),
     name: Joi.string().lowercase().valid('asc', 'desc').optional(),
     rare: Joi.string().lowercase().valid('asc', 'desc').optional(),

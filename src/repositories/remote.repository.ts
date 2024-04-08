@@ -28,12 +28,12 @@ export class RemoteRepository {
     return this.RemoteModel.find(query, undefined, { sort }).lean();
   }
 
-  findByRepo({ directory, folderKey }: RepoFilterQuery) {
-    return this.RemoteModel.find({ directory, folderKey }).lean();
+  findByRepo({ directory }: RepoFilterQuery) {
+    return this.RemoteModel.find({ directory }).lean();
   }
 
-  findOneInRepoByName({ directory, folderKey, name }: RemoteFilterQuery) {
-    return this.RemoteModel.findOne({ directory, folderKey, name }).lean();
+  findOneInRepoByName({ directory, name }: RemoteFilterQuery) {
+    return this.RemoteModel.findOne({ directory, name }).lean();
   }
 
   findByHostGroup({ targetHost, targetGroup }: HostGroupFilterQuery) {

@@ -9,17 +9,14 @@ export class RemoteHelper {
   static gitRepoToBdRepo({
     gitRemote,
     directory,
-    folderKey,
   }: {
     gitRemote: GitRemoteType;
-    folderKey: string;
     directory: string;
   }): Remote {
     const { urlType, targetHost, targetGroup, targetName } =
       this.parseTargetInfo(gitRemote.url);
     return {
       ...gitRemote,
-      folderKey,
       directory,
       urlType,
       targetHost,
