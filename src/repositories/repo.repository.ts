@@ -37,12 +37,12 @@ export class RepoRepository {
 
   async upsertByDirectory(data: Repo) {
     const cond = { directory: data.directory };
-    const repo = await this.RepoModel.findOne(cond);
-    if (!repo) {
-      return this.create(data);
+    const record = await this.RepoModel.findOne(cond);
+    if (!record) {
+      return (await this.RepoModel.create({ ...data })).toJSON();
     }
-    return repo.updateOne(data);
-    // return repo.save();
+    Object.assign(record, data);
+    return (await record.save()).toJSON();
   }
 
   truncate() {

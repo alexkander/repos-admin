@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { FilterQuery } from 'mongoose';
-import { configuration } from 'src/configuration/configuration';
 import { RepoHelper } from 'src/helpers/repo.helper';
 import { RemoteHelper } from '../helpers/remote.helper';
 import { RemoteRepository } from '../repositories/remote.repository';
@@ -8,7 +7,6 @@ import { RepoRepository } from '../repositories/repo.repository';
 import { Remote } from '../schemas/remote.schema';
 import { SortQueryData } from '../types/utils.types';
 import { GitRepo } from '../utils/gitRepo.class';
-import { routes } from '../utils/routes';
 import { LoggerService } from './logger.service';
 
 @Injectable()
@@ -44,7 +42,7 @@ export class RemoteService {
       const repo = new GitRepo(gitDirectory);
       const remotesData = await repo.getRemotes();
       const remotes = remotesData.map((gitRemote) => {
-        return RemoteHelper.gitRepoToBdRepo({
+        return RemoteHelper.gitRemoteToRemote({
           gitRemote,
           directory: repository.directory,
         });

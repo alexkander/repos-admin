@@ -61,11 +61,7 @@ export class RepoController {
     return this.repoService.syncById(id);
   }
 
-  @Put('/:id/refresh')
-  refresh(@Param('id') id: Types.ObjectId) {
-    return this.repoService.refresh(id);
-  }
-
+  /////////////////////
   @Post('/gitFetch/:type')
   gitFetch(@Param('type') type: string) {
     return this.repoService.gitFetch(type);

@@ -44,6 +44,16 @@ export class RemoteRepository {
     return this.RemoteModel.create(data);
   }
 
+  async upsertByDirectoryAndName(data: Remote) {
+    const cond = { directory: data.directory, name: data.name };
+    const record = await this.RemoteModel.findOne(cond);
+    if (!record) {
+      return (await this.RemoteModel.create({ ...data })).toJSON();
+    }
+    Object.assign(record, data);
+    return (await record.save()).toJSON();
+  }
+
   async updateById(_id: Types.ObjectId, data: Remote) {
     return this.RemoteModel.updateOne({ _id }, data);
   }

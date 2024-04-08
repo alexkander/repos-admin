@@ -1,12 +1,19 @@
+import { GitRepo } from 'src/utils/gitRepo.class';
 import { RemoteConstants } from '../constants/remote.constants';
 import { Remote } from '../schemas/remote.schema';
 import { GitRemoteType } from '../types/gitRepo.types';
-import { RemoteUrlType } from '../types/remotes.type';
+import {
+  FetchLogStatusType,
+  RemoteFetchStatus,
+  RemoteFilterQuery,
+  RemoteUrlType,
+} from '../types/remotes.type';
+import { RepoHelper } from './repo.helper';
 
 export class RemoteHelper {
   constructor() { }
 
-  static gitRepoToBdRepo({
+  static gitRemoteToRemote({
     gitRemote,
     directory,
   }: {
@@ -46,6 +53,23 @@ export class RemoteHelper {
       targetGroup: null,
       targetName: null,
     };
+  }
+
+  static async fetchRemote({ directory, name }: RemoteFilterQuery) {
+    const gitDirectory = RepoHelper.getRealGitDirectory(directory);
+    const gitRepo = new GitRepo(gitDirectory);
+    const result = await gitRepo
+      .fetchAll(name)
+      .then((response) => ({
+        status: FetchLogStatusType.SUCCESS,
+        result: response,
+      }))
+      .catch((error) => ({ status: FetchLogStatusType.ERROR, result: error }));
+    const status: RemoteFetchStatus = {
+      fetchStatus: result.status,
+      fetchResult: result.result,
+    };
+    return status;
   }
 
   static normalizeTargetName(targetNameRaw: string) {

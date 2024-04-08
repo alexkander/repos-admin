@@ -1,3 +1,4 @@
+import * as fs from 'fs';
 import { glob } from 'glob';
 import { configuration } from 'src/configuration/configuration';
 import { RepoConstants } from 'src/constants/repo.constants';
@@ -26,10 +27,10 @@ export class RepoHelper {
     const repoDirectory = routes.relative(baseDirectory, directory);
     const group = routes.dirname(repoDirectory);
     const localName = routes.basename(repoDirectory);
-    const repo = new GitRepo(directory);
-    const valid = await repo.isRepo();
-    const remotes = valid ? await repo.getRemotes() : [];
-    const branches = valid ? await repo.getBranches() : [];
+    const gitRepo = new GitRepo(directory);
+    const valid = await gitRepo.isRepo();
+    const remotes = valid ? await gitRepo.getRemotes() : [];
+    const branches = valid ? await gitRepo.getBranches() : [];
     const repoData: Repo = {
       directory: repoDirectory,
       group,
@@ -38,7 +39,41 @@ export class RepoHelper {
       remotes: remotes.length,
       branches: branches.length,
     };
-    return repoData;
+    return { repoData, remotes, branches };
+  }
+
+  static async forEachRepositoryIn<T>({
+    directory,
+    callback,
+  }: {
+    directory: string;
+    callback: (directory: string) => Promise<T>;
+  }) {
+    const allSubDirectories = await RepoHelper.getSubDirectories(directory);
+    const subDirectories = allSubDirectories.filter((d) => {
+      return !RepoConstants.ignoreDirectories.find((regex) =>
+        d.match(new RegExp(regex)),
+      );
+    });
+
+    const resultArray: T[] = [];
+
+    for (const subDirectory of subDirectories) {
+      const itemDirectory = routes.resolve(directory, subDirectory);
+      const gitDirectory = routes.resolve(itemDirectory, '.git');
+      if (!fs.existsSync(gitDirectory)) {
+        const nestedRepos = await this.forEachRepositoryIn({
+          directory: itemDirectory,
+          callback,
+        });
+        resultArray.push(...nestedRepos);
+        continue;
+      }
+      const resultItem = await callback(itemDirectory);
+      resultArray.push(resultItem);
+    }
+
+    return resultArray;
   }
 
   static async getSubDirectories(directory: string) {
