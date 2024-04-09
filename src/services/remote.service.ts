@@ -53,6 +53,7 @@ export class RemoteService {
     const remotes = (await Promise.all(remotesPromises)).flatMap((r) => r);
     return remotes;
   }
+
   async remotesLonelyBranchesByGroup(targetHost: string, targetGroup: string) {
     const remotes = await this.remoteRepository.findByHostGroup({
       targetHost,

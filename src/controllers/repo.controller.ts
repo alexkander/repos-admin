@@ -3,8 +3,8 @@ import {
   Controller,
   Get,
   Param,
+  ParseBoolPipe,
   Post,
-  Put,
   Query,
   Render,
   Req
@@ -17,12 +17,13 @@ import { RepoService } from '../services/repo.service';
 import { SearchService } from '../services/search.service';
 import { TableQueryParams } from '../types/utils.types';
 import { repoSearchValidation } from '../validations/repo.search.validator';
+import { SyncActionType } from 'src/types/repos.types';
 
 const fields = [
   { field: 'directory', text: 'directory' },
   { field: 'group', text: 'group' },
   { field: 'localName', text: 'name' },
-  { field: 'isValid', text: 'is valid' },
+  { field: 'valid', text: 'is valid' },
   { field: 'remotes', text: 'remotes' },
   { field: 'branches', text: 'branches' },
 ];
@@ -52,13 +53,16 @@ export class RepoController {
   }
 
   @Post('/sync')
-  sync() {
-    return this.repoService.sync();
+  sync(@Query('type') type: SyncActionType = SyncActionType.base) {
+    return this.repoService.sync(type);
   }
 
   @Post('/:id/sync')
-  syncById(@Param('id') id: Types.ObjectId) {
-    return this.repoService.syncById(id);
+  syncById(
+    @Param('id') id: Types.ObjectId,
+    @Query('type') type: SyncActionType = SyncActionType.base,
+  ) {
+    return this.repoService.syncById(id, type);
   }
 
   /////////////////////

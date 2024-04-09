@@ -1,6 +1,6 @@
 import simpleGit from 'simple-git';
 import { BranchConstants } from '../constants/branch.constants';
-import { GitRemoteType } from '../types/gitRepo.types';
+import { GitBranchType, GitRemoteType } from '../types/gitRepo.types';
 
 export class GitRepo {
   private handler: ReturnType<typeof simpleGit>;
@@ -44,13 +44,15 @@ export class GitRepo {
         : largeName;
       const commit = branch.commit;
 
-      return {
+      const result: GitBranchType = {
         shortName,
         largeName,
         isRemote,
         remote,
         commit,
       };
+
+      return result;
     });
     return branches;
   }

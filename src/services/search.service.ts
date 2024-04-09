@@ -22,7 +22,7 @@ export class SearchService {
   } {
     const filterQuery = Object.entries(search || {}).reduce<FilterQuery<T>>(
       (acc, [property, text]) => {
-        return { ...acc, [property]: new RegExp(text as string) };
+        return { ...acc, [property]: new RegExp(String(text)) };
       },
       {},
     );

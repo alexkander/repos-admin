@@ -1,7 +1,7 @@
 import { GitRepo } from 'src/utils/gitRepo.class';
 import { RemoteConstants } from '../constants/remote.constants';
 import { Remote } from '../schemas/remote.schema';
-import { GitRemoteType } from '../types/gitRepo.types';
+import { GitBranchType, GitRemoteType } from '../types/gitRepo.types';
 import {
   FetchLogStatusType,
   RemoteFetchStatus,
@@ -9,6 +9,7 @@ import {
   RemoteUrlType,
 } from '../types/remotes.type';
 import { RepoHelper } from './repo.helper';
+import { SyncActionType } from 'src/types/repos.types';
 
 export class RemoteHelper {
   constructor() { }
@@ -30,6 +31,26 @@ export class RemoteHelper {
       targetGroup,
       targetName,
     };
+  }
+
+  static gitBranchToBranch({
+    gitBranch,
+    directory,
+  }: {
+    gitBranch: GitBranchType;
+    directory: string;
+  }) {
+    return {};
+    // const { urlType, targetHost, targetGroup, targetName } =
+    //   this.parseTargetInfo(gitRemote.url);
+    // return {
+    //   ...gitRemote,
+    //   directory,
+    //   urlType,
+    //   targetHost,
+    //   targetGroup,
+    //   targetName,
+    // };
   }
 
   static parseTargetInfo(url: string) {
@@ -70,6 +91,14 @@ export class RemoteHelper {
       fetchResult: result.result,
     };
     return status;
+  }
+
+  static isSyncRemote(type: SyncActionType) {
+    return [SyncActionType.all, SyncActionType.remotes].indexOf(type) !== -1;
+  }
+
+  static isSyncBranch(type: SyncActionType) {
+    return [SyncActionType.all, SyncActionType.branches].indexOf(type) !== -1;
   }
 
   static normalizeTargetName(targetNameRaw: string) {

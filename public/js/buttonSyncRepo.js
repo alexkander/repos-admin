@@ -3,21 +3,19 @@
     event.preventDefault();
     const button = event.target;
     button.disabled = true;
+    const type = button.dataset.type;
     const options = { method: 'POST' };
-    const query = AppHelpers.queryStringToObject(location.search);
-    fetch('/repo/sync', options)
+    fetch(`/repo/sync?type=${type}`, options)
       .then(async (res) => {
         const data = await res.json();
-        console.log(data);
-        query.success = `${data.length} repos synchronized`;
-        // location.search = AppHelpers.objectToQueryString(query);
+        AppHelpers.showSuccessMessage(`${data.length} repos synchronized`);
       })
-      .catch(() => {
-        query.fail = 'Error synchronizing repos';
-        // location.search = AppHelpers.objectToQueryString(query);
+      .catch((err) => {
+        console.log(err);
+        AppHelpers.showFailsMessage('Error synchronizing repos');
       })
       .finally(() => {
-        button.disabled = true;
+        button.disabled = false;
       });
   };
 

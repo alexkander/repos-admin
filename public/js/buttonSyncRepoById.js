@@ -3,9 +3,10 @@
     event.preventDefault();
     const button = event.target;
     button.disabled = true;
-    const options = { method: 'POST' };
     const id = button.dataset.id;
-    fetch(`/repo/${id}/sync`, options)
+    const type = button.dataset.type;
+    const options = { method: 'POST' };
+    fetch(`/repo/${id}/sync?type=${type}`, options)
       .then(async (res) => {
         const data = await res.json();
         console.log(data);
@@ -13,7 +14,7 @@
       })
       .catch((err) => {
         console.log(err);
-        // AppHelpers.showFailsMessage('Error synchronizing repo');
+        AppHelpers.showFailsMessage('Error synchronizing repo');
       })
       .finally(() => {
         button.disabled = false;

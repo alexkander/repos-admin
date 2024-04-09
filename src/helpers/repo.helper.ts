@@ -29,17 +29,21 @@ export class RepoHelper {
     const localName = routes.basename(repoDirectory);
     const gitRepo = new GitRepo(directory);
     const valid = await gitRepo.isRepo();
-    const remotes = valid ? await gitRepo.getRemotes() : [];
-    const branches = valid ? await gitRepo.getBranches() : [];
     const repoData: Repo = {
       directory: repoDirectory,
       group,
       localName,
       valid,
-      remotes: remotes.length,
-      branches: branches.length,
     };
-    return { repoData, remotes, branches };
+    return repoData;
+  }
+
+  static async getRemotesAndBranchesInDirectory(directory: string) {
+    const gitRepo = new GitRepo(directory);
+    const valid = await gitRepo.isRepo();
+    const remotes = valid ? await gitRepo.getRemotes() : [];
+    const branches = valid ? await gitRepo.getBranches() : [];
+    return { remotes, branches };
   }
 
   static async forEachRepositoryIn<T>({
