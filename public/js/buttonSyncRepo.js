@@ -4,8 +4,9 @@
     const button = event.target;
     button.disabled = true;
     const type = button.dataset.type;
+    const doFetch = button.dataset.fetch;
     const options = { method: 'POST' };
-    fetch(`/repo/sync?type=${type}`, options)
+    fetch(`/repo/sync?type=${type}&doFetch=${doFetch}`, options)
       .then(async (res) => {
         const data = await res.json();
         AppHelpers.showSuccessMessage(`${data.length} repos synchronized`);

@@ -38,13 +38,6 @@ export class RepoHelper {
     return repoData;
   }
 
-  static async getRemotesAndBranchesInDirectory(directory: string) {
-    const gitRepo = new GitRepo(directory);
-    const valid = await gitRepo.isRepo();
-    const remotes = valid ? await gitRepo.getRemotes() : [];
-    const branches = valid ? await gitRepo.getBranches() : [];
-    return { remotes, branches };
-  }
 
   static async forEachRepositoryIn<T>({
     directory,

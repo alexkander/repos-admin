@@ -15,6 +15,8 @@ import { LoggerService } from './services/logger.service';
 import { RemoteService } from './services/remote.service';
 import { RepoService } from './services/repo.service';
 import { SearchService } from './services/search.service';
+import { Branch, BranchSchema } from './schemas/branch.schema';
+import { BranchRepository } from './repositories/branch.repository';
 
 @Module({
   imports: [
@@ -22,6 +24,7 @@ import { SearchService } from './services/search.service';
     MongooseModule.forFeature([
       { name: Repo.name, schema: RepoSchema },
       { name: Remote.name, schema: RemoteSchema },
+      { name: Branch.name, schema: BranchSchema },
       { name: Group.name, schema: GroupSchema },
     ]),
   ],
@@ -33,6 +36,7 @@ import { SearchService } from './services/search.service';
     RepoRepository,
     RemoteRepository,
     RemoteService,
+    BranchRepository,
     GroupRepository,
     GroupService,
   ],

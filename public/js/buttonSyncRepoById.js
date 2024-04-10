@@ -5,8 +5,9 @@
     button.disabled = true;
     const id = button.dataset.id;
     const type = button.dataset.type;
+    const doFetch = button.dataset.fetch;
     const options = { method: 'POST' };
-    fetch(`/repo/${id}/sync?type=${type}`, options)
+    fetch(`/repo/${id}/sync?type=${type}&doFetch=${doFetch}`, options)
       .then(async (res) => {
         const data = await res.json();
         console.log(data);

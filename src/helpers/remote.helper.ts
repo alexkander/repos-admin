@@ -40,17 +40,10 @@ export class RemoteHelper {
     gitBranch: GitBranchType;
     directory: string;
   }) {
-    return {};
-    // const { urlType, targetHost, targetGroup, targetName } =
-    //   this.parseTargetInfo(gitRemote.url);
-    // return {
-    //   ...gitRemote,
-    //   directory,
-    //   urlType,
-    //   targetHost,
-    //   targetGroup,
-    //   targetName,
-    // };
+    return {
+      directory,
+      ...gitBranch,
+    };
   }
 
   static parseTargetInfo(url: string) {
@@ -79,8 +72,12 @@ export class RemoteHelper {
   static async fetchRemote({ directory, name }: RemoteFilterQuery) {
     const gitDirectory = RepoHelper.getRealGitDirectory(directory);
     const gitRepo = new GitRepo(gitDirectory);
+    return this.fetchRemoteFromGitRepo(gitRepo, name);
+  }
+
+  static async fetchRemoteFromGitRepo(gitRepo: GitRepo, remoteName: string) {
     const result = await gitRepo
-      .fetchAll(name)
+      .fetchAll(remoteName)
       .then((response) => ({
         status: FetchLogStatusType.SUCCESS,
         result: response,

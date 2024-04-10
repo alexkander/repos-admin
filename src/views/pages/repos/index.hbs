@@ -10,7 +10,7 @@
     <button
       class="btn btn-info app--buttonSyncRepo"
       data-type="all"
-      data-fetch="fetch"
+      data-fetch="true"
     >Sync repos, remotes and branches</button>
   </div>
   <div class="col">
@@ -40,7 +40,7 @@
           class="link-secondary app--pointer app--buttonSyncRepoById"
           data-id="{{ _id }}"
           data-type="all"
-          data-fetch="fetch"
+          data-fetch="true"
         >[sync all]</a>
         <a
           class="link-secondary app--pointer app--buttonSyncRepoById"
@@ -48,16 +48,14 @@
           data-type="remotes"
         >[sync remotes]</a>
         <a
+          class="link-secondary app--pointer app--buttonFetchRepoRemotesById"
+          data-id="{{ _id }}"
+        >[fetch remotes]</a>
+        <a
           class="link-secondary app--pointer app--buttonSyncRepoById"
           data-id="{{ _id }}"
           data-type="branches"
         >[sync branches]</a>
-        <a
-          class="link-secondary app--pointer app--buttonSyncRepoById"
-          data-id="{{ _id }}"
-          data-type="all"
-          data-fetch="fetch"
-        >[fetch branches]</a>
       </td>
     </tr>
     {{/each}}
@@ -66,4 +64,5 @@
 <script src="js/tableHandler.js"></script>
 <script src="js/buttonSyncRepo.js"></script>
 <script src="js/buttonSyncRepoById.js"></script>
+<script src="js/buttonFetchRepoRemotesById.js"></script>
 {{/layout}}

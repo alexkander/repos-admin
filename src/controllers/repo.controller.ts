@@ -53,16 +53,27 @@ export class RepoController {
   }
 
   @Post('/sync')
-  sync(@Query('type') type: SyncActionType = SyncActionType.base) {
-    return this.repoService.sync(type);
+  sync(
+    @Query('type') type: SyncActionType = SyncActionType.base,
+    @Query('doFetch', new ParseBoolPipe({ optional: true }))
+    doFetch: boolean = false,
+  ) {
+    return this.repoService.syncAll(type, doFetch);
   }
 
   @Post('/:id/sync')
   syncById(
     @Param('id') id: Types.ObjectId,
     @Query('type') type: SyncActionType = SyncActionType.base,
+    @Query('doFetch', new ParseBoolPipe({ optional: true }))
+    doFetch: boolean = false,
   ) {
-    return this.repoService.syncById(id, type);
+    return this.repoService.syncRepoById(id, type, doFetch);
+  }
+
+  @Post('/:id/fetchRemotes')
+  fetchRemotes(@Param('id') id: Types.ObjectId) {
+    return this.repoService.fetchRepoRemotesById(id);
   }
 
   /////////////////////
