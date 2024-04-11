@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { RemoteHelper } from 'src/helpers/remote.helper';
-import { RemoteRepository } from 'src/repositories/remote.repository';
-import { Remote } from 'src/schemas/remote.schema';
-import { RemoteFilterQuery } from 'src/types/remotes.type';
-import { GitRepo } from 'src/utils/gitRepo.class';
+import { RemoteHelper } from '../helpers/remote.helper';
+import { RemoteRepository } from '../repositories/remote.repository';
+import { Remote } from '../schemas/remote.schema';
+import { RemoteFilterQuery } from '../types/remotes.type';
+import { GitRepo } from '../utils/gitRepo.class';
 import { LoggerService } from './logger.service';
 
 @Injectable()

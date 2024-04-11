@@ -4,13 +4,13 @@ import {
   Injectable,
 } from '@nestjs/common';
 import { FilterQuery, Types } from 'mongoose';
-import { RepoHelper } from 'src/helpers/repo.helper';
-import { BranchRepository } from 'src/repositories/branch.repository';
-import { GitBranchType, GitRemoteType } from 'src/types/gitRepo.types';
 import { RemoteHelper } from '../helpers/remote.helper';
+import { RepoHelper } from '../helpers/repo.helper';
+import { BranchRepository } from '../repositories/branch.repository';
 import { RemoteRepository } from '../repositories/remote.repository';
 import { RepoRepository } from '../repositories/repo.repository';
 import { Repo } from '../schemas/repo.schema';
+import { GitBranchType, GitRemoteType } from '../types/gitRepo.types';
 import { ReposComparisonParams, SyncActionType } from '../types/repos.types';
 import { SortQueryData } from '../types/utils.types';
 import { GitRepo } from '../utils/gitRepo.class';
@@ -238,7 +238,7 @@ export class RepoService {
     return fetchResults;
   }
 
-  ////---------------
+  /////////////////////
   async compareRepos(params: ReposComparisonParams) {
     const { directoryFrom, directoryTo } = params;
 

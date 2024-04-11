@@ -10,9 +10,9 @@ import {
 import { Remote } from '../schemas/remote.schema';
 import { RemoteService } from '../services/remote.service';
 import { SearchService } from '../services/search.service';
+import { RemoteGroupType } from '../types/remotes.type';
 import { TableQueryParams } from '../types/utils.types';
 import { remoteSearchValidation } from '../validations/remote.search.validator';
-import { RemoteGroupType } from 'src/types/remotes.type';
 
 const fields = [
   { field: 'directory', text: 'directory' },
@@ -54,6 +54,7 @@ export class RemoteController {
     return this.remoteService.fetchRemotesByGroup(group);
   }
 
+  /////////////////////
   @Get('/:host/:group/remotesLonelyBranchesByGroup')
   getRemotesLonelyBranchesByGroup(
     @Param('host') host: string,

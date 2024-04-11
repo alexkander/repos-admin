@@ -37,6 +37,23 @@
     <tr>
       <td>{{ addOne @index }}</td>
       {{> tableRow fields=../fields }}
+      <td class="text-nowrap">
+        <a
+          class="link-secondary app--pointer app--buttonSyncRemoteById"
+          data-id="{{ _id }}"
+          data-type="all"
+          data-fetch="true"
+        >[sync all]</a>
+        <a
+          class="link-secondary app--pointer app--buttonSyncRemoteById"
+          data-id="{{ _id }}"
+          data-type="branches"
+        >[sync branches]</a>
+        <a
+          class="link-secondary app--pointer app--buttonFetchRemotesById"
+          data-id="{{ _id }}"
+        >[fetch]</a>
+      </td>
     </tr>
     {{/each}}
   </tbody>

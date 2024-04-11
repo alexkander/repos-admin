@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { RepoFilterQuery } from 'src/types/remotes.type';
 import { Branch } from '../schemas/branch.schema';
+import { RepoFilterQuery } from '../types/remotes.type';
 
 @Injectable()
 export class BranchRepository {

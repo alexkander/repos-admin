@@ -29,7 +29,7 @@ export class RemoteRepository {
     return this.RemoteModel.find(query, undefined, { sort }).lean();
   }
 
-  findByRemoteGroup(group: RemoteGroupType){
+  findByRemoteGroup(group: RemoteGroupType) {
     const condition = this.getRemoteGroupCondition(group);
     return this.RemoteModel.find(condition);
   }

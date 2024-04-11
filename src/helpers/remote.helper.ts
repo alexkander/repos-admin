@@ -1,4 +1,3 @@
-import { GitRepo } from 'src/utils/gitRepo.class';
 import { RemoteConstants } from '../constants/remote.constants';
 import { Remote } from '../schemas/remote.schema';
 import { GitBranchType, GitRemoteType } from '../types/gitRepo.types';
@@ -8,8 +7,9 @@ import {
   RemoteFilterQuery,
   RemoteUrlType,
 } from '../types/remotes.type';
+import { SyncActionType } from '../types/repos.types';
+import { GitRepo } from '../utils/gitRepo.class';
 import { RepoHelper } from './repo.helper';
-import { SyncActionType } from 'src/types/repos.types';
 
 export class RemoteHelper {
   constructor() { }

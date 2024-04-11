@@ -1,10 +1,10 @@
 import * as fs from 'fs';
 import { glob } from 'glob';
-import { configuration } from 'src/configuration/configuration';
-import { RepoConstants } from 'src/constants/repo.constants';
-import { Repo } from 'src/schemas/repo.schema';
-import { GitRepo } from 'src/utils/gitRepo.class';
-import { routes } from 'src/utils/routes';
+import { configuration } from '../configuration/configuration';
+import { RepoConstants } from '../constants/repo.constants';
+import { Repo } from '../schemas/repo.schema';
+import { GitRepo } from '../utils/gitRepo.class';
+import { routes } from '../utils/routes';
 
 export class RepoHelper {
   constructor() { }

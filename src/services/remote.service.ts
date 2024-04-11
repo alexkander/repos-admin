@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { FilterQuery } from 'mongoose';
-import { RepoHelper } from 'src/helpers/repo.helper';
-import { RemoteGroupType } from 'src/types/remotes.type';
+import { RepoHelper } from '../helpers/repo.helper';
 import { RemoteRepository } from '../repositories/remote.repository';
 import { Remote } from '../schemas/remote.schema';
+import { RemoteGroupType } from '../types/remotes.type';
 import { SortQueryData } from '../types/utils.types';
 import { GitRepo } from '../utils/gitRepo.class';
 import { routes } from '../utils/routes';
@@ -53,6 +53,7 @@ export class RemoteService {
     return fetchResults;
   }
 
+  /////////////////////
   async remotesLonelyBranchesByGroup(targetHost: string, targetGroup: string) {
     const remotes = await this.remoteRepository.findByHostGroup({
       targetHost,

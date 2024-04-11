@@ -11,11 +11,11 @@ import {
 } from '@nestjs/common';
 import { Request } from 'express';
 import { Types } from 'mongoose';
-import { SyncActionType } from 'src/types/repos.types';
 import { RepoControllerConstants } from '../constants/repo.constants';
 import { Repo } from '../schemas/repo.schema';
 import { RepoService } from '../services/repo.service';
 import { SearchService } from '../services/search.service';
+import { SyncActionType } from '../types/repos.types';
 import { TableQueryParams } from '../types/utils.types';
 import { repoSearchValidation } from '../validations/repo.search.validator';
 
