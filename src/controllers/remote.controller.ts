@@ -5,6 +5,7 @@ import {
   Param,
   ParseBoolPipe,
   Post,
+  Put,
   Query,
   Render,
 } from '@nestjs/common';
@@ -25,6 +26,7 @@ const fields = [
   { field: 'targetName', text: 'targetName' },
   { field: 'url', text: 'url' },
   { field: 'urlType', text: 'urlType' },
+  { field: 'branches', text: 'branches' },
   { field: 'fetchStatus', text: 'status' },
 ];
 @Controller('remote')
@@ -51,7 +53,7 @@ export class RemoteController {
     return { records, totalCount, searchQuery, errors, fields };
   }
 
-  @Post('/fetchRemotesByGroup/:group')
+  @Put('/fetchRemotesByGroup/:group')
   fetchRemotesByGroup(@Param('group') group: RemoteGroupType) {
     return this.remoteService.fetchRemotesByGroup(group);
   }
@@ -64,6 +66,11 @@ export class RemoteController {
     doFetch: boolean = false,
   ) {
     return this.remoteService.syncRemoteById(id, type, doFetch);
+  }
+
+  @Put('/:id/fetch')
+  fetchById(@Param('id') id: Types.ObjectId) {
+    return this.remoteService.syncRemoteById(id);
   }
 
   /////////////////////

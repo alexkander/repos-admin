@@ -1,6 +1,4 @@
-- Remotes Specify remote sync all
-- Remotes Specify remote sync branches
-- Remotes Specify remote fetch
 - compare repos
 - Search oldest commit in a repo
 - local branches not pushed
+- Improvement way to show messages

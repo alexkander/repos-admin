@@ -69,6 +69,19 @@ export class RemoteService {
     });
   }
 
+  async fetchById(id: Types.ObjectId) {
+    const remote = await this.remoteRepository.findById(id);
+    this.logger.doLog(`  fetch remote: ${remote.name}`);
+    const status = await RemoteHelper.fetchRemote({
+      directory: remote.directory,
+      name: remote.name,
+    });
+    Object.assign(remote, status);
+    const remoteFetched =
+      await this.remoteRepository.upsertByDirectoryAndName(remote);
+    return remoteFetched;
+  }
+
   async syncRemoteByDirectory({
     directory,
     remoteName,

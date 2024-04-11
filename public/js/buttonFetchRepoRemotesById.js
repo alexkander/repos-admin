@@ -4,7 +4,7 @@
     const button = event.target;
     button.disabled = true;
     const id = button.dataset.id;
-    const options = { method: 'POST' };
+    const options = { method: 'PUT' };
     fetch(`/repo/${id}/fetchRemotes`, options)
       .then(async (res) => {
         const data = await res.json();

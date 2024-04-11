@@ -5,6 +5,7 @@ import {
   Param,
   ParseBoolPipe,
   Post,
+  Put,
   Query,
   Render,
   Req
@@ -71,7 +72,7 @@ export class RepoController {
     return this.repoService.syncRepoById(id, type, doFetch);
   }
 
-  @Post('/:id/fetchRemotes')
+  @Put('/:id/fetchRemotes')
   fetchRemotes(@Param('id') id: Types.ObjectId) {
     return this.repoService.fetchRepoRemotesById(id);
   }

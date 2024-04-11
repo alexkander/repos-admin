@@ -6,8 +6,9 @@
     const id = button.dataset.id;
     const type = button.dataset.type;
     const doFetch = button.dataset.fetch;
+    const doFetchQuery = doFetch ? `&doFetch=${doFetch}` : '';
     const options = { method: 'POST' };
-    fetch(`/remote/${id}/sync?type=${type}&doFetch=${doFetch}`, options)
+    fetch(`/remote/${id}/sync?type=${type}${doFetchQuery}`, options)
       .then(async (res) => {
         const data = await res.json();
         console.log(data);
