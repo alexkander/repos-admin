@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { FilterQuery, Model, Types } from 'mongoose';
 import { Remote } from '../schemas/remote.schema';
@@ -6,6 +6,7 @@ import {
   HostGroupFilterQuery,
   RemoteFetchStatus,
   RemoteFilterQuery,
+  RemoteGroupType,
   RepoFilterQuery,
 } from '../types/remotes.type';
 import { SortQueryData } from '../types/utils.types';
@@ -24,8 +25,24 @@ export class RemoteRepository {
     return this.RemoteModel.find().lean();
   }
 
-  findAll(query: FilterQuery<Remote>, sort: SortQueryData<Remote>) {
+  findAll(query: FilterQuery<Remote>, sort: SortQueryData<Remote> = {}) {
     return this.RemoteModel.find(query, undefined, { sort }).lean();
+  }
+
+  findByRemoteGroup(group: RemoteGroupType){
+    const condition = this.getRemoteGroupCondition(group);
+    return this.RemoteModel.find(condition);
+  }
+
+  getRemoteGroupCondition(group: RemoteGroupType) {
+    if (group === 'all') {
+      return {};
+    } else if (group === 'fetchStatusError') {
+      return { fetchStatus: 'error' };
+    } else if (group === 'notFetched') {
+      return { fetchStatus: { $exists: false } };
+    }
+    throw new BadRequestException(`unknown type: ${group}`);
   }
 
   findByRepo({ directory }: RepoFilterQuery) {
@@ -38,10 +55,6 @@ export class RemoteRepository {
 
   findByHostGroup({ targetHost, targetGroup }: HostGroupFilterQuery) {
     return this.RemoteModel.find({ targetHost, targetGroup }).lean();
-  }
-
-  async create(data: Remote) {
-    return this.RemoteModel.create(data);
   }
 
   async upsertByDirectoryAndName(data: Remote) {
@@ -63,9 +76,5 @@ export class RemoteRepository {
     { fetchResult, fetchStatus }: RemoteFetchStatus,
   ) {
     return this.RemoteModel.updateMany(filter, { fetchResult, fetchStatus });
-  }
-
-  truncate() {
-    return this.RemoteModel.deleteMany();
   }
 }

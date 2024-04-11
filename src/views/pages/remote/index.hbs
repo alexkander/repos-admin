@@ -1,7 +1,26 @@
 {{#> layout }}
 {{> nav }}
 {{> alerts }}
-{{> recordsCountLabel totalCount=totalCount records=records }}
+
+<div class="row">
+  <div class="col">
+    <button
+      class="btn btn-info app--buttonFetchRemotesByGroup"
+      data-group="all"
+    >Fetch all remotes</button>
+    <button
+      class="btn btn-info app--buttonFetchRemotesByGroup"
+      data-group="fetchStatusError"
+    >Fetch remotes with fetch error</button>
+    <button
+      class="btn btn-info app--buttonFetchRemotesByGroup"
+      data-group="notFetched"
+    >Fetch remotes not fetched yet</button>
+  </div>
+  <div class="col">
+    {{> recordsCountLabel totalCount=totalCount records=records }}
+  </div>
+</div>
 <table class="table table-sm">
   <thead>
     <tr>
@@ -23,4 +42,5 @@
   </tbody>
 </table>
 <script src="js/tableHandler.js"></script>
+<script src="js/buttonFetchRemotesByGroup.js"></script>
 {{/layout}}

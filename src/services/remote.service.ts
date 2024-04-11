@@ -1,12 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { FilterQuery } from 'mongoose';
 import { RepoHelper } from 'src/helpers/repo.helper';
-import { RemoteHelper } from '../helpers/remote.helper';
+import { RemoteGroupType } from 'src/types/remotes.type';
 import { RemoteRepository } from '../repositories/remote.repository';
-import { RepoRepository } from '../repositories/repo.repository';
 import { Remote } from '../schemas/remote.schema';
 import { SortQueryData } from '../types/utils.types';
 import { GitRepo } from '../utils/gitRepo.class';
+import { routes } from '../utils/routes';
+import { GitService } from './git.service';
 import { LoggerService } from './logger.service';
 
 @Injectable()
@@ -14,7 +15,7 @@ export class RemoteService {
   constructor(
     private readonly logger: LoggerService,
     private readonly remoteRepository: RemoteRepository,
-    private readonly repoRepository: RepoRepository,
+    private readonly gitService: GitService,
   ) { }
 
   count() {
@@ -25,33 +26,31 @@ export class RemoteService {
     return this.remoteRepository.findAll(query, sort);
   }
 
-  async saveLocalRemotes() {
-    await this.remoteRepository.truncate();
-    const localRemotes = await this.listLocalRemotes();
-    const createPromises = localRemotes.map((remote) => {
-      return this.remoteRepository.create(remote);
-    });
-    const records = Promise.all(createPromises);
-    return records;
-  }
+  async fetchRemotesByGroup(group: RemoteGroupType) {
+    const baseDirectory = RepoHelper.getRealGitDirectory();
+    const remotes = await this.remoteRepository.findByRemoteGroup(group);
+    const fetchResults = [];
 
-  async listLocalRemotes() {
-    const repositories = await this.repoRepository.findValidRepos();
-    const remotesPromises = repositories.map(async (repository) => {
-      const gitDirectory = RepoHelper.getRealGitDirectory(repository.directory);
-      const repo = new GitRepo(gitDirectory);
-      const remotesData = await repo.getRemotes();
-      const remotes = remotesData.map((gitRemote) => {
-        return RemoteHelper.gitRemoteToRemote({
-          gitRemote,
-          directory: repository.directory,
-        });
-      });
-      return remotes;
-    });
+    this.logger.doLog(`remotes to fetch ${remotes.length}`);
 
-    const remotes = (await Promise.all(remotesPromises)).flatMap((r) => r);
-    return remotes;
+    for (let idxRemote = 0; idxRemote < remotes.length; idxRemote++) {
+      const remote = remotes[idxRemote];
+      this.logger.doLog(
+        `- remote ${idxRemote + 1} of ${remotes.length} (${remote.name}): ${remote.url}`,
+      );
+      const gitDirectory = routes.resolve(baseDirectory, remote.directory);
+      const gitRepo = new GitRepo(gitDirectory);
+      const fetchResult = await this.gitService.fetchRepoRemote(
+        gitRepo,
+        remote,
+      );
+      fetchResults.push(fetchResult);
+    }
+
+    const failed = fetchResults.filter((i) => i.fetchStatus === 'error').length;
+
+    this.logger.doLog(`remotes fetched. fails ${failed}`);
+    return fetchResults;
   }
 
   async remotesLonelyBranchesByGroup(targetHost: string, targetGroup: string) {

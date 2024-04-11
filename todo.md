@@ -1,8 +1,6 @@
-Repo
-- Specify repo sync branches
-- Specify repo fetch 
-
-Remotes
-- Specify remote sync all
-- Specify remote sync branches
-- Specify remote fetch
+- Remotes Specify remote sync all
+- Remotes Specify remote sync branches
+- Remotes Specify remote fetch
+- compare repos
+- Search oldest commit in a repo
+- local branches not pushed

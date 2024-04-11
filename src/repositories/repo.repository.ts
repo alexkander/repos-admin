@@ -27,10 +27,6 @@ export class RepoRepository {
     return this.RepoModel.findOne({ directory, valid: true }).lean();
   }
 
-  findValidRepos() {
-    return this.RepoModel.find({ valid: true }).lean();
-  }
-
   async create(data: Repo) {
     return this.RepoModel.create(data);
   }

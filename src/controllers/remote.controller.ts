@@ -12,6 +12,7 @@ import { RemoteService } from '../services/remote.service';
 import { SearchService } from '../services/search.service';
 import { TableQueryParams } from '../types/utils.types';
 import { remoteSearchValidation } from '../validations/remote.search.validator';
+import { RemoteGroupType } from 'src/types/remotes.type';
 
 const fields = [
   { field: 'directory', text: 'directory' },
@@ -48,14 +49,9 @@ export class RemoteController {
     return { records, totalCount, searchQuery, errors, fields };
   }
 
-  @Get('/listLocalRemotes')
-  listLocalRemotes() {
-    return this.remoteService.listLocalRemotes();
-  }
-
-  @Post('/saveLocalRemotes')
-  saveLocalRemotes() {
-    return this.remoteService.saveLocalRemotes();
+  @Post('/fetchRemotesByGroup/:group')
+  fetchRemotesByGroup(@Param('group') group: RemoteGroupType) {
+    return this.remoteService.fetchRemotesByGroup(group);
   }
 
   @Get('/:host/:group/remotesLonelyBranchesByGroup')

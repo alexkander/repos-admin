@@ -11,6 +11,12 @@ export enum RemoteUrlType {
   UNKNOWN = 'unknown',
 }
 
+export enum RemoteGroupType {
+  all = 'all',
+  fetchStatusError = 'fetchStatusError',
+  notFetched = 'notFetched',
+}
+
 export type RepoFilterQuery = {
   directory: string;
 };

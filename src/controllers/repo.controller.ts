@@ -11,13 +11,13 @@ import {
 } from '@nestjs/common';
 import { Request } from 'express';
 import { Types } from 'mongoose';
+import { SyncActionType } from 'src/types/repos.types';
 import { RepoControllerConstants } from '../constants/repo.constants';
 import { Repo } from '../schemas/repo.schema';
 import { RepoService } from '../services/repo.service';
 import { SearchService } from '../services/search.service';
 import { TableQueryParams } from '../types/utils.types';
 import { repoSearchValidation } from '../validations/repo.search.validator';
-import { SyncActionType } from 'src/types/repos.types';
 
 const fields = [
   { field: 'directory', text: 'directory' },
@@ -77,11 +77,6 @@ export class RepoController {
   }
 
   /////////////////////
-  @Post('/gitFetch/:type')
-  gitFetch(@Param('type') type: string) {
-    return this.repoService.gitFetch(type);
-  }
-
   @Get('/compareWith/*')
   compareWith(@Req() req?: Request) {
     const repos = req.params['0'];
