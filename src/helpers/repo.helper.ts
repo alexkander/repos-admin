@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 import { glob } from 'glob';
+import { SyncRepoActionType } from '../types/repos.types';
 import { configuration } from '../configuration/configuration';
 import { RepoConstants } from '../constants/repo.constants';
 import { Repo } from '../schemas/repo.schema';
@@ -37,7 +38,6 @@ export class RepoHelper {
     };
     return repoData;
   }
-
 
   static async forEachRepositoryIn<T>({
     directory,
@@ -80,5 +80,17 @@ export class RepoHelper {
     return subDirectories.map((subDir) => {
       return subDir.split('\\').join('/');
     });
+  }
+
+  static isSyncRemote(type: SyncRepoActionType) {
+    return (
+      [SyncRepoActionType.all, SyncRepoActionType.remotes].indexOf(type) !== -1
+    );
+  }
+
+  static isSyncBranch(type: SyncRepoActionType) {
+    return (
+      [SyncRepoActionType.all, SyncRepoActionType.branches].indexOf(type) !== -1
+    );
   }
 }

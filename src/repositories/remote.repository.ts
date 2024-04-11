@@ -29,6 +29,10 @@ export class RemoteRepository {
     return this.RemoteModel.find(query, undefined, { sort }).lean();
   }
 
+  findById(id: Types.ObjectId) {
+    return this.RemoteModel.findById(id).lean();
+  }
+
   findByRemoteGroup(group: RemoteGroupType) {
     const condition = this.getRemoteGroupCondition(group);
     return this.RemoteModel.find(condition);

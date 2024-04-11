@@ -15,7 +15,7 @@ import { RepoControllerConstants } from '../constants/repo.constants';
 import { Repo } from '../schemas/repo.schema';
 import { RepoService } from '../services/repo.service';
 import { SearchService } from '../services/search.service';
-import { SyncActionType } from '../types/repos.types';
+import { SyncRepoActionType } from '../types/repos.types';
 import { TableQueryParams } from '../types/utils.types';
 import { repoSearchValidation } from '../validations/repo.search.validator';
 
@@ -54,7 +54,7 @@ export class RepoController {
 
   @Post('/sync')
   sync(
-    @Query('type') type: SyncActionType = SyncActionType.base,
+    @Query('type') type: SyncRepoActionType = SyncRepoActionType.base,
     @Query('doFetch', new ParseBoolPipe({ optional: true }))
     doFetch: boolean = false,
   ) {
@@ -64,7 +64,7 @@ export class RepoController {
   @Post('/:id/sync')
   syncById(
     @Param('id') id: Types.ObjectId,
-    @Query('type') type: SyncActionType = SyncActionType.base,
+    @Query('type') type: SyncRepoActionType = SyncRepoActionType.base,
     @Query('doFetch', new ParseBoolPipe({ optional: true }))
     doFetch: boolean = false,
   ) {

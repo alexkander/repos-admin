@@ -1,3 +1,4 @@
+import { routes } from '../utils/routes';
 import { RemoteConstants } from '../constants/remote.constants';
 import { Remote } from '../schemas/remote.schema';
 import { GitBranchType, GitRemoteType } from '../types/gitRepo.types';
@@ -6,13 +7,33 @@ import {
   RemoteFetchStatus,
   RemoteFilterQuery,
   RemoteUrlType,
+  SyncRemoteActionType,
 } from '../types/remotes.type';
-import { SyncActionType } from '../types/repos.types';
 import { GitRepo } from '../utils/gitRepo.class';
 import { RepoHelper } from './repo.helper';
 
 export class RemoteHelper {
   constructor() { }
+
+  static async getRemoteDataFromDirectory({
+    directory,
+    baseDirectory,
+    remoteName,
+  }: {
+    directory: string;
+    baseDirectory: string;
+    remoteName: string;
+  }) {
+    const gitDirectory = routes.resolve(baseDirectory, directory);
+    const gitRepo = new GitRepo(gitDirectory);
+    const remotes = await gitRepo.getRemotes();
+    const gitRemote = remotes.find((r) => r.name === remoteName);
+    const remoteData = this.gitRemoteToRemote({
+      directory,
+      gitRemote,
+    });
+    return remoteData;
+  }
 
   static gitRemoteToRemote({
     gitRemote,
@@ -90,19 +111,19 @@ export class RemoteHelper {
     return status;
   }
 
-  static isSyncRemote(type: SyncActionType) {
-    return [SyncActionType.all, SyncActionType.remotes].indexOf(type) !== -1;
-  }
-
-  static isSyncBranch(type: SyncActionType) {
-    return [SyncActionType.all, SyncActionType.branches].indexOf(type) !== -1;
-  }
-
   static normalizeTargetName(targetNameRaw: string) {
     const len = targetNameRaw.length - RemoteConstants.gitSuffix.length;
     const targetName = targetNameRaw.endsWith(RemoteConstants.gitSuffix)
       ? targetNameRaw.substring(0, len)
       : targetNameRaw;
     return targetName;
+  }
+
+  static isSyncBranch(type: SyncRemoteActionType) {
+    return (
+      [SyncRemoteActionType.all, SyncRemoteActionType.branches].indexOf(
+        type,
+      ) !== -1
+    );
   }
 }

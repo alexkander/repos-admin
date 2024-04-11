@@ -3,6 +3,7 @@ import {
   Delete,
   Get,
   Param,
+  ParseBoolPipe,
   Post,
   Query,
   Render,
@@ -10,9 +11,10 @@ import {
 import { Remote } from '../schemas/remote.schema';
 import { RemoteService } from '../services/remote.service';
 import { SearchService } from '../services/search.service';
-import { RemoteGroupType } from '../types/remotes.type';
+import { RemoteGroupType, SyncRemoteActionType } from '../types/remotes.type';
 import { TableQueryParams } from '../types/utils.types';
 import { remoteSearchValidation } from '../validations/remote.search.validator';
+import { Types } from 'mongoose';
 
 const fields = [
   { field: 'directory', text: 'directory' },
@@ -52,6 +54,16 @@ export class RemoteController {
   @Post('/fetchRemotesByGroup/:group')
   fetchRemotesByGroup(@Param('group') group: RemoteGroupType) {
     return this.remoteService.fetchRemotesByGroup(group);
+  }
+
+  @Post('/:id/sync')
+  syncById(
+    @Param('id') id: Types.ObjectId,
+    @Query('type') type: SyncRemoteActionType = SyncRemoteActionType.base,
+    @Query('doFetch', new ParseBoolPipe({ optional: true }))
+    doFetch: boolean = false,
+  ) {
+    return this.remoteService.syncRemoteById(id, type, doFetch);
   }
 
   /////////////////////

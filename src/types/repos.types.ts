@@ -3,7 +3,7 @@ export type ReposComparisonParams = {
   directoryTo: string;
 };
 
-export enum SyncActionType {
+export enum SyncRepoActionType {
   base = 'base',
   all = 'all',
   remotes = 'remotes',

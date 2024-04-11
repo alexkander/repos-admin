@@ -35,3 +35,9 @@ export type HostGroupFilterQuery = {
   targetHost: string;
   targetGroup: string;
 };
+
+export enum SyncRemoteActionType {
+  base = 'base',
+  all = 'all',
+  branches = 'branches',
+}

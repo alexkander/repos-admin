@@ -1,9 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { FilterQuery } from 'mongoose';
+import { FilterQuery, Types } from 'mongoose';
+import { RemoteHelper } from '../helpers/remote.helper';
 import { RepoHelper } from '../helpers/repo.helper';
 import { RemoteRepository } from '../repositories/remote.repository';
 import { Remote } from '../schemas/remote.schema';
-import { RemoteGroupType } from '../types/remotes.type';
+import { RemoteGroupType, SyncRemoteActionType } from '../types/remotes.type';
 import { SortQueryData } from '../types/utils.types';
 import { GitRepo } from '../utils/gitRepo.class';
 import { routes } from '../utils/routes';
@@ -51,6 +52,100 @@ export class RemoteService {
 
     this.logger.doLog(`remotes fetched. fails ${failed}`);
     return fetchResults;
+  }
+
+  async syncRemoteById(
+    id: Types.ObjectId,
+    type: SyncRemoteActionType = SyncRemoteActionType.base,
+    doFetch?: boolean,
+  ) {
+    this.logger.doLog(
+      `starts sync remote by id: type=${type} doFetch=${doFetch}`,
+    );
+    const baseDirectory = RepoHelper.getRealGitDirectory();
+    const remote = await this.remoteRepository.findById(id);
+    return this.syncRemoteByDirectory({
+      baseDirectory,
+      directory: remote.directory,
+      remoteName: remote.name,
+      type,
+      doFetch,
+    });
+  }
+
+  async syncRemoteByDirectory({
+    directory,
+    baseDirectory,
+    remoteName,
+    type,
+    doFetch,
+  }: {
+    baseDirectory: string;
+    directory: string;
+    remoteName: string;
+    type: SyncRemoteActionType;
+    doFetch: boolean;
+  }) {
+    this.logger.doLog(`sync remote ${remoteName} in: ${directory}`);
+    const remoteData = await RemoteHelper.getRemoteDataFromDirectory({
+      baseDirectory,
+      directory,
+      remoteName,
+    });
+    if (type === SyncRemoteActionType.base) {
+      return this.syncRemoteInDirectory(remoteData);
+    }
+    return this.syncRemoteAndBranchesInDirectory(remoteData, {
+      directory: routes.resolve(baseDirectory, directory),
+      type,
+      doFetch,
+    });
+  }
+
+  async syncRemoteInDirectory(remoteData: Remote) {
+    const remoteSynched =
+      await this.remoteRepository.upsertByDirectoryAndName(remoteData);
+    return { remoteSynched };
+  }
+
+  async syncRemoteAndBranchesInDirectory(
+    remoteData: Remote,
+    {
+      directory,
+      type = SyncRemoteActionType.base,
+      doFetch,
+    }: {
+      directory: string;
+      type: SyncRemoteActionType;
+      doFetch?: boolean;
+    },
+  ) {
+    const gitRepo = new GitRepo(directory);
+    const opts = {
+      gitRepo,
+      directory: remoteData.directory,
+      remoteName: remoteData.name,
+    };
+
+    if (doFetch) {
+      this.logger.doLog(`  fetch remote: ${remoteData.name}`);
+      const status = await RemoteHelper.fetchRemote({
+        directory,
+        name: remoteData.name,
+      });
+      Object.assign(remoteData, status);
+    }
+
+    const branchesSynched = RemoteHelper.isSyncBranch(type)
+      ? await this.gitService.syncDirectoryBranches({ ...opts })
+      : null;
+
+    remoteData.branches = branchesSynched?.length || null;
+
+    const remoteSynched =
+      await this.remoteRepository.upsertByDirectoryAndName(remoteData);
+
+    return { remoteSynched, branchesSynched };
   }
 
   /////////////////////
