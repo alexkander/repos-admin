@@ -17,15 +17,12 @@ export class RemoteHelper {
 
   static async getRemoteDataFromDirectory({
     directory,
-    baseDirectory,
     remoteName,
   }: {
     directory: string;
-    baseDirectory: string;
     remoteName: string;
   }) {
-    const gitDirectory = routes.resolve(baseDirectory, directory);
-    const gitRepo = new GitRepo(gitDirectory);
+    const gitRepo = RepoHelper.getGitRepo(directory);
     const remotes = await gitRepo.getRemotes();
     const gitRemote = remotes.find((r) => r.name === remoteName);
     const remoteData = this.gitRemoteToRemote({
@@ -91,8 +88,7 @@ export class RemoteHelper {
   }
 
   static async fetchRemote({ directory, name }: RemoteFilterQuery) {
-    const gitDirectory = RepoHelper.getRealGitDirectory(directory);
-    const gitRepo = new GitRepo(gitDirectory);
+    const gitRepo = RepoHelper.getGitRepo(directory);
     return this.fetchRemoteFromGitRepo(gitRepo, name);
   }
 

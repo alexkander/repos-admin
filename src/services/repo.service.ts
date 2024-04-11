@@ -45,13 +45,10 @@ export class RepoService {
       `starts syn of all repo: type=${type} doFetch=${doFetch}`,
     );
     await this.repoRepository.truncate();
-    const baseDirectory = RepoHelper.getRealGitDirectory();
     const createdRepos = await RepoHelper.forEachRepositoryIn({
-      directory: baseDirectory,
       callback: (directory) => {
         return this.syncRepoByDirectory({
-          baseDirectory,
-          directory: directory,
+          directory,
           type,
           doFetch,
         });
@@ -71,10 +68,8 @@ export class RepoService {
     this.logger.doLog(
       `starts sync repo by id: type=${type} doFetch=${doFetch}`,
     );
-    const baseDirectory = RepoHelper.getRealGitDirectory();
     const repo = await this.repoRepository.findById(id);
     return this.syncRepoByDirectory({
-      baseDirectory,
       directory: repo.directory,
       type,
       doFetch,
@@ -83,25 +78,19 @@ export class RepoService {
 
   async syncRepoByDirectory({
     directory,
-    baseDirectory,
     type,
     doFetch,
   }: {
     directory: string;
-    baseDirectory: string;
     type: SyncRepoActionType;
     doFetch: boolean;
   }) {
     this.logger.doLog(`sync repo in: ${directory}`);
-    const repoData = await RepoHelper.getRepoDataFromDirectory({
-      baseDirectory,
-      directory,
-    });
+    const repoData = await RepoHelper.getRepoDataFromDirectory(directory);
     if (type === SyncRepoActionType.base) {
       return this.syncRepoInDirectory(repoData);
     }
     return this.syncRepoRemotesAndBranchesInDirectory(repoData, {
-      directory: routes.resolve(baseDirectory, directory),
       type,
       doFetch,
     });
@@ -115,16 +104,14 @@ export class RepoService {
   async syncRepoRemotesAndBranchesInDirectory(
     repoData: Repo,
     {
-      directory,
       doFetch,
       type = SyncRepoActionType.base,
     }: {
-      directory: string;
       type: SyncRepoActionType;
       doFetch?: boolean;
     },
   ) {
-    const gitRepo = new GitRepo(directory);
+    const gitRepo = RepoHelper.getGitRepo(repoData.directory);
     const opts = { gitRepo, directory: repoData.directory };
 
     const remotesSynched = RepoHelper.isSyncRemote(type)
@@ -144,12 +131,11 @@ export class RepoService {
   }
 
   async fetchRepoRemotesById(id: Types.ObjectId) {
-    const baseDirectory = RepoHelper.getRealGitDirectory();
     const repo = await this.repoRepository.findById(id);
     const { directory } = repo;
-    const gitDirectory = routes.resolve(baseDirectory, directory);
-    const gitRepo = new GitRepo(gitDirectory);
-    if (!(await gitRepo.isRepo())) {
+    const gitRepo = RepoHelper.getGitRepo(directory);
+    const valid = await gitRepo.isRepo();
+    if (!valid) {
       throw new BadGatewayException(`invalid repo ${id}`);
     }
     const remotes = await this.remoteRepository.findByRepo({ directory });
@@ -170,8 +156,8 @@ export class RepoService {
     const { directoryFrom, directoryTo } = params;
 
     const [gitRepoFrom, gitRepoTo] = await this.validateGitRepos([
-      RepoHelper.getRealGitDirectory(directoryFrom),
-      RepoHelper.getRealGitDirectory(directoryTo),
+      directoryFrom,
+      directoryTo,
     ]);
 
     const [branchesFrom, branchesTo] = await Promise.all([
@@ -211,7 +197,7 @@ export class RepoService {
 
   validateGitRepos(directories: string[]) {
     const promises = directories.map(async (directory) => {
-      const gitRepo = new GitRepo(directory);
+      const gitRepo = RepoHelper.getGitRepo(directory);
       const isRepo = await gitRepo.isRepo();
       if (!isRepo) {
         throw new BadRequestException(

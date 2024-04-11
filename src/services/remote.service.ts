@@ -28,7 +28,6 @@ export class RemoteService {
   }
 
   async fetchRemotesByGroup(group: RemoteGroupType) {
-    const baseDirectory = RepoHelper.getRealGitDirectory();
     const remotes = await this.remoteRepository.findByRemoteGroup(group);
     const fetchResults = [];
 
@@ -39,8 +38,7 @@ export class RemoteService {
       this.logger.doLog(
         `- remote ${idxRemote + 1} of ${remotes.length} (${remote.name}): ${remote.url}`,
       );
-      const gitDirectory = routes.resolve(baseDirectory, remote.directory);
-      const gitRepo = new GitRepo(gitDirectory);
+      const gitRepo = RepoHelper.getGitRepo(remote.directory);
       const fetchResult = await this.gitService.fetchRepoRemote(
         gitRepo,
         remote,
@@ -62,10 +60,8 @@ export class RemoteService {
     this.logger.doLog(
       `starts sync remote by id: type=${type} doFetch=${doFetch}`,
     );
-    const baseDirectory = RepoHelper.getRealGitDirectory();
     const remote = await this.remoteRepository.findById(id);
     return this.syncRemoteByDirectory({
-      baseDirectory,
       directory: remote.directory,
       remoteName: remote.name,
       type,
@@ -75,12 +71,10 @@ export class RemoteService {
 
   async syncRemoteByDirectory({
     directory,
-    baseDirectory,
     remoteName,
     type,
     doFetch,
   }: {
-    baseDirectory: string;
     directory: string;
     remoteName: string;
     type: SyncRemoteActionType;
@@ -88,7 +82,6 @@ export class RemoteService {
   }) {
     this.logger.doLog(`sync remote ${remoteName} in: ${directory}`);
     const remoteData = await RemoteHelper.getRemoteDataFromDirectory({
-      baseDirectory,
       directory,
       remoteName,
     });
@@ -96,7 +89,6 @@ export class RemoteService {
       return this.syncRemoteInDirectory(remoteData);
     }
     return this.syncRemoteAndBranchesInDirectory(remoteData, {
-      directory: routes.resolve(baseDirectory, directory),
       type,
       doFetch,
     });
@@ -111,16 +103,14 @@ export class RemoteService {
   async syncRemoteAndBranchesInDirectory(
     remoteData: Remote,
     {
-      directory,
       type = SyncRemoteActionType.base,
       doFetch,
     }: {
-      directory: string;
       type: SyncRemoteActionType;
       doFetch?: boolean;
     },
   ) {
-    const gitRepo = new GitRepo(directory);
+    const gitRepo = RepoHelper.getGitRepo(remoteData.directory);
     const opts = {
       gitRepo,
       directory: remoteData.directory,
@@ -130,7 +120,7 @@ export class RemoteService {
     if (doFetch) {
       this.logger.doLog(`  fetch remote: ${remoteData.name}`);
       const status = await RemoteHelper.fetchRemote({
-        directory,
+        directory: remoteData.directory,
         name: remoteData.name,
       });
       Object.assign(remoteData, status);
@@ -215,10 +205,7 @@ export class RemoteService {
 
     for (let idx = 0; idx < remotesWithDescendants.length; idx++) {
       const remoteToRemove = remotesWithDescendants[idx];
-      const gitDirectory = RepoHelper.getRealGitDirectory(
-        remoteToRemove.directory,
-      );
-      const gitRepo = new GitRepo(gitDirectory);
+      const gitRepo = RepoHelper.getGitRepo(remoteToRemove.directory);
       this.logger.doLog(
         `- ${idx + 1} of ${remotesWithDescendants.length}: removing remote ${remoteToRemove.remote} from ${remoteToRemove.directory}`,
       );
@@ -239,8 +226,7 @@ export class RemoteService {
   }
 
   async getCompareSummaryBranches(remote: Remote) {
-    const gitDirectory = RepoHelper.getRealGitDirectory(remote.directory);
-    const gitRepo = new GitRepo(gitDirectory);
+    const gitRepo = RepoHelper.getGitRepo(remote.directory);
     const branches = await gitRepo.getBranches();
     const remoteBranches = branches.filter((b) => b.remote === remote.name);
     const otherBranches = branches.filter((b) => b.remote !== remote.name);

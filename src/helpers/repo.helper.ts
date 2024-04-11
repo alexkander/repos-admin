@@ -1,37 +1,31 @@
 import * as fs from 'fs';
 import { glob } from 'glob';
-import { SyncRepoActionType } from '../types/repos.types';
 import { configuration } from '../configuration/configuration';
 import { RepoConstants } from '../constants/repo.constants';
 import { Repo } from '../schemas/repo.schema';
+import { SyncRepoActionType } from '../types/repos.types';
 import { GitRepo } from '../utils/gitRepo.class';
 import { routes } from '../utils/routes';
 
 export class RepoHelper {
+  public static readonly baseDirectory = routes.resolve(
+    configuration.REPOSITORIES_DIRECTORY,
+  );
+
   constructor() { }
 
-  static getRealGitDirectory(directory: string = '') {
-    const gitDirectory = routes.join(
-      configuration.REPOSITORIES_DIRECTORY,
-      directory,
-    );
-    return gitDirectory;
+  static getGitRepo(directory: string) {
+    const gitDirectory = routes.resolve(this.baseDirectory, directory);
+    return new GitRepo(gitDirectory);
   }
 
-  static async getRepoDataFromDirectory({
-    directory,
-    baseDirectory,
-  }: {
-    directory: string;
-    baseDirectory: string;
-  }) {
-    const repoDirectory = routes.relative(baseDirectory, directory);
-    const group = routes.dirname(repoDirectory);
-    const localName = routes.basename(repoDirectory);
-    const gitRepo = new GitRepo(directory);
+  static async getRepoDataFromDirectory(directory: string) {
+    const group = routes.dirname(directory);
+    const localName = routes.basename(directory);
+    const gitRepo = this.getGitRepo(directory);
     const valid = await gitRepo.isRepo();
     const repoData: Repo = {
-      directory: repoDirectory,
+      directory,
       group,
       localName,
       valid,
@@ -40,10 +34,10 @@ export class RepoHelper {
   }
 
   static async forEachRepositoryIn<T>({
-    directory,
+    directory = this.baseDirectory,
     callback,
   }: {
-    directory: string;
+    directory?: string;
     callback: (directory: string) => Promise<T>;
   }) {
     const allSubDirectories = await RepoHelper.getSubDirectories(directory);
@@ -58,6 +52,10 @@ export class RepoHelper {
     for (const subDirectory of subDirectories) {
       const itemDirectory = routes.resolve(directory, subDirectory);
       const gitDirectory = routes.resolve(itemDirectory, '.git');
+      const itemRelativeDirectory = routes.relative(
+        this.baseDirectory,
+        itemDirectory,
+      );
       if (!fs.existsSync(gitDirectory)) {
         const nestedRepos = await this.forEachRepositoryIn({
           directory: itemDirectory,
@@ -66,7 +64,7 @@ export class RepoHelper {
         resultArray.push(...nestedRepos);
         continue;
       }
-      const resultItem = await callback(itemDirectory);
+      const resultItem = await callback(itemRelativeDirectory);
       resultArray.push(resultItem);
     }
 
