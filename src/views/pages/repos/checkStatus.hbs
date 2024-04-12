@@ -1,0 +1,53 @@
+{{#> layout }}
+<div>{{> nav }}</div>
+<div>{{> alerts }}</div>
+
+<div class="container-fluid">
+  <h3>{{repo.directory}}</h3>
+  <h5>remotes ({{ allRemotes.length }})</h5>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>name</th>
+        <th>url</th>
+      </tr>  
+    </thead>
+    <tbody>
+      {{#each allRemotes }}
+      <tr>
+        <td>{{ addOne @index }}</td>
+        <td>{{ name }}</td>
+        <td>{{ url }}</td>
+      </tr>
+      {{/each }}
+    </tbody>
+  </table>
+  <h5>branches ({{ branches.length }})</h5>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>name</th>
+        {{#each remotes }}
+        <th>{{ name }}</th>
+        {{/each }}
+      </tr>
+    </thead>
+    <tbody>
+      {{#each branches }}
+      <tr>
+        <td>{{ addOne @index }}</td>
+        <td>{{ name }}</td>
+        {{#each ../remotes }}
+        <td>
+          <span>{{prop name ../largeNames}}</span><br />
+          <strong>{{prop name ../commits}}</strong>
+        </td>
+        {{/each}}
+      </tr>
+      {{/each }}
+    </tbody>
+  </table>
+</div>
+{{/layout}}

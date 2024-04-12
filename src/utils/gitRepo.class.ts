@@ -90,4 +90,12 @@ export class GitRepo {
   removeRemote(remoteName: string) {
     return this.handler.removeRemote(remoteName);
   }
+
+  async getRemoteBranches(remoteName: string) {
+    const lines = await this.handler.raw(['ls-remote', '--heads', remoteName]);
+    return lines.split('\n').map((line) => {
+      const [commit, refName] = line.split('\trefs/heads/');
+      return { commit, refName };
+    });
+  }
 }

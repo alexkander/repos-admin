@@ -76,4 +76,10 @@ export class RepoController {
   fetchRemotes(@Param('id') id: Types.ObjectId) {
     return this.repoService.fetchRepoRemotesById(id);
   }
+
+  @Get('/:id/checkStatus')
+  @Render('repos/checkStatus.hbs')
+  checkStatus(@Param('id') id: Types.ObjectId) {
+    return this.repoService.checkStatusById(id);
+  }
 }

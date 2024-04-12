@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { BranchRepository } from '../repositories/branch.repository';
-import { GitBranchType, GitRemoteType } from '../types/gitRepo.types';
 import { RemoteHelper } from '../helpers/remote.helper';
+import { BranchRepository } from '../repositories/branch.repository';
 import { RemoteRepository } from '../repositories/remote.repository';
 import { Remote } from '../schemas/remote.schema';
+import { GitBranchType, GitRemoteType } from '../types/gitRepo.types';
 import { RemoteFilterQuery } from '../types/remotes.type';
 import { GitRepo } from '../utils/gitRepo.class';
 import { LoggerService } from './logger.service';
@@ -33,6 +33,7 @@ export class GitService {
   async syncDirectoryRemote(
     directory: string,
     gitRemote: GitRemoteType,
+    branches: number,
     doFetch?: boolean,
   ) {
     this.logger.doLog(`  sync remote: ${gitRemote.name}`);
@@ -40,6 +41,7 @@ export class GitService {
       gitRemote,
       directory,
     });
+    remoteData.branches = branches;
     if (doFetch) {
       this.logger.doLog(`  fetch remote: ${gitRemote.name}`);
       const status = await RemoteHelper.fetchRemote({
@@ -72,9 +74,18 @@ export class GitService {
     const valid = await gitRepo.isRepo();
     if (!valid) return null;
     const allRemotes = await gitRepo.getRemotes();
+    const allBranches = await gitRepo.getBranches();
     this.logger.doLog(`- remotes to sync ${allRemotes.length}`);
     const upsertPromises = allRemotes.map((gitRemote) => {
-      return this.syncDirectoryRemote(directory, gitRemote, doFetch);
+      const remotesBranches = allBranches.filter(
+        (b) => b.remote === gitRemote.name,
+      );
+      return this.syncDirectoryRemote(
+        directory,
+        gitRemote,
+        remotesBranches.length,
+        doFetch,
+      );
     });
     const result = await Promise.all(upsertPromises);
     this.logger.doLog(`- remotes to sync ${result.length}`);

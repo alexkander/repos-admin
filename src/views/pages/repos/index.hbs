@@ -1,66 +1,77 @@
 {{#> layout }}
-{{> nav }}
-{{> alerts }}
-<div class="row">
-  <div class="col">
-    <button
-      class="btn btn-info app--buttonSyncRepo"
-      data-type="base"
-    >Sync repos</button>
-    <button
-      class="btn btn-info app--buttonSyncRepo"
-      data-type="all"
-      data-fetch="true"
-    >Sync repos, remotes and branches</button>
+<div>{{> nav }}</div>
+<div>{{> alerts }}</div>
+<div class="container-fluid">
+  <div class="row">
+    <div class="col">
+      <button class="btn btn-info app--buttonSyncRepo" data-type="base">
+        Sync repos
+      </button>
+      <button
+        class="btn btn-info app--buttonSyncRepo"
+        data-type="all"
+        data-fetch="true"
+      >
+        Sync repos, remotes and branches
+      </button>
+    </div>
+    <div class="col">
+      {{> recordsCountLabel totalCount=totalCount records=records }}
+    </div>
   </div>
-  <div class="col">
-    {{> recordsCountLabel totalCount=totalCount records=records }}
-  </div>
+  <table class="table table-sm">
+    <thead>
+      <tr>
+        <th>#</th>
+        {{> tableHeader fields=fields sortValues=searchQuery.sort allowSort=true
+        }}
+        <td></td>
+      </tr>
+      <tr class="app--searchBoxesWrapper">
+        <td></td>
+        {{> tableSearchInputs fields=fields searchValues=searchQuery.search }}
+        <td></td>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each records }}
+      <tr>
+        <td>{{ addOne @index }}</td>
+        {{> tableRow fields=../fields }}
+        <td class="text-nowrap">
+          <a
+            class="link-secondary app--pointer app--buttonSyncRepoById"
+            data-id="{{ _id }}"
+            data-type="all"
+            data-fetch="true"
+            >[sync all]</a
+          >
+          <a
+            class="link-secondary app--pointer app--buttonSyncRepoById"
+            data-id="{{ _id }}"
+            data-type="remotes"
+            >[sync remotes]</a
+          >
+          <a
+            class="link-secondary app--pointer app--buttonFetchRepoRemotesById"
+            data-id="{{ _id }}"
+            >[fetch remotes]</a
+          >
+          <a
+            class="link-secondary app--pointer app--buttonSyncRepoById"
+            data-id="{{ _id }}"
+            data-type="branches"
+            >[sync branches]</a
+          >
+          <a class="link-secondary" href="/repo/{{ _id }}/checkStatus"
+            >[check status]</a
+          >
+        </td>
+      </tr>
+      {{/each}}
+    </tbody>
+  </table>
 </div>
-<table class="table table-sm">
-  <thead>
-    <tr>
-      <th>#</th>
-      {{> tableHeader fields=fields sortValues=searchQuery.sort allowSort=true }}
-      <td></td>
-    </tr>
-    <tr class="app--searchBoxesWrapper">
-      <td></td>
-      {{> tableSearchInputs fields=fields searchValues=searchQuery.search }}
-      <td></td>
-    </tr>
-  </thead>
-  <tbody>
-    {{#each records }}
-    <tr>
-      <td>{{ addOne @index }}</td>
-      {{> tableRow fields=../fields }}
-      <td class="text-nowrap">
-        <a
-          class="link-secondary app--pointer app--buttonSyncRepoById"
-          data-id="{{ _id }}"
-          data-type="all"
-          data-fetch="true"
-        >[sync all]</a>
-        <a
-          class="link-secondary app--pointer app--buttonSyncRepoById"
-          data-id="{{ _id }}"
-          data-type="remotes"
-        >[sync remotes]</a>
-        <a
-          class="link-secondary app--pointer app--buttonFetchRepoRemotesById"
-          data-id="{{ _id }}"
-        >[fetch remotes]</a>
-        <a
-          class="link-secondary app--pointer app--buttonSyncRepoById"
-          data-id="{{ _id }}"
-          data-type="branches"
-        >[sync branches]</a>
-      </td>
-    </tr>
-    {{/each}}
-  </tbody>
-</table>
 <script src="js/tableHandler.js"></script>
 <script src="js/buttonSyncRepo.js"></script>
 <script src="js/buttonSyncRepoById.js"></script>

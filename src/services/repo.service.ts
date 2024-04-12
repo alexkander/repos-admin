@@ -139,4 +139,34 @@ export class RepoService {
     this.logger.doLog(`- remotes fetched. fails ${failed}`);
     return fetchResults;
   }
+
+  async checkStatusById(id: Types.ObjectId) {
+    const repo = await this.repoRepository.findById(id);
+    const gitRepo = RepoHelper.getGitRepo(repo.directory);
+    const allBranches = await gitRepo.getBranches();
+    const allRemotes = await gitRepo.getRemotes();
+    const remotes = [{ name: 'local' }].concat(allRemotes);
+    const branchesMap: Record<
+      string,
+      {
+        name: string;
+        commits: Record<string, string>;
+        largeNames: Record<string, string>;
+      }
+    > = {};
+    allBranches.forEach((branch) => {
+      const branchItem = branchesMap[branch.shortName] || {
+        name: branch.shortName,
+        commits: {},
+        largeNames: {},
+      };
+      branchesMap[branch.shortName] = branchItem;
+      branchItem.commits[branch.remote || 'local'] = branch.commit;
+      branchItem.largeNames[branch.remote || 'local'] = branch.largeName;
+    });
+    const branches = Object.values(branchesMap);
+    const remoteBranches = await gitRepo.getRemoteBranches('origin');
+    console.log(remoteBranches);
+    return { repo, branches, remotes, allRemotes };
+  }
 }

@@ -1,63 +1,74 @@
 {{#> layout }}
-{{> nav }}
-{{> alerts }}
-
-<div class="row">
-  <div class="col">
-    <button
-      class="btn btn-info app--buttonFetchRemotesByGroup"
-      data-group="all"
-    >Fetch all remotes</button>
-    <button
-      class="btn btn-info app--buttonFetchRemotesByGroup"
-      data-group="fetchStatusError"
-    >Fetch remotes with fetch error</button>
-    <button
-      class="btn btn-info app--buttonFetchRemotesByGroup"
-      data-group="notFetched"
-    >Fetch remotes not fetched yet</button>
+<div>{{> nav }}</div>
+<div>{{> alerts }}</div>
+<div class="container-fluid">
+  <div class="row">
+    <div class="col">
+      <button
+        class="btn btn-info app--buttonFetchRemotesByGroup"
+        data-group="all"
+      >
+        Fetch all remotes
+      </button>
+      <button
+        class="btn btn-info app--buttonFetchRemotesByGroup"
+        data-group="fetchStatusError"
+      >
+        Fetch remotes with fetch error
+      </button>
+      <button
+        class="btn btn-info app--buttonFetchRemotesByGroup"
+        data-group="notFetched"
+      >
+        Fetch remotes not fetched yet
+      </button>
+    </div>
+    <div class="col">
+      {{> recordsCountLabel totalCount=totalCount records=records }}
+    </div>
   </div>
-  <div class="col">
-    {{> recordsCountLabel totalCount=totalCount records=records }}
-  </div>
+  <table class="table table-sm">
+    <thead>
+      <tr>
+        <th>#</th>
+        {{> tableHeader fields=fields sortValues=searchQuery.sort allowSort=true
+        }}
+      </tr>
+      <tr class="app--searchBoxesWrapper">
+        <td></td>
+        {{> tableSearchInputs fields=fields searchValues=searchQuery.search }}
+      </tr>
+    </thead>
+    <tbody>
+      {{#each records }}
+      <tr>
+        <td>{{ addOne @index }}</td>
+        {{> tableRow fields=../fields }}
+        <td class="text-nowrap">
+          <a
+            class="link-secondary app--pointer app--buttonSyncRemoteById"
+            data-id="{{ _id }}"
+            data-type="all"
+            data-fetch="true"
+            >[sync all]</a
+          >
+          <a
+            class="link-secondary app--pointer app--buttonSyncRemoteById"
+            data-id="{{ _id }}"
+            data-type="branches"
+            >[sync branches]</a
+          >
+          <a
+            class="link-secondary app--pointer app--buttonFetchRemoteById"
+            data-id="{{ _id }}"
+            >[fetch]</a
+          >
+        </td>
+      </tr>
+      {{/each}}
+    </tbody>
+  </table>
 </div>
-<table class="table table-sm">
-  <thead>
-    <tr>
-      <th>#</th>
-      {{> tableHeader fields=fields sortValues=searchQuery.sort allowSort=true }}
-    </tr>
-    <tr class="app--searchBoxesWrapper">
-      <td></td>
-      {{> tableSearchInputs fields=fields searchValues=searchQuery.search }}
-    </tr>
-  </thead>
-  <tbody>
-    {{#each records }}
-    <tr>
-      <td>{{ addOne @index }}</td>
-      {{> tableRow fields=../fields }}
-      <td class="text-nowrap">
-        <a
-          class="link-secondary app--pointer app--buttonSyncRemoteById"
-          data-id="{{ _id }}"
-          data-type="all"
-          data-fetch="true"
-        >[sync all]</a>
-        <a
-          class="link-secondary app--pointer app--buttonSyncRemoteById"
-          data-id="{{ _id }}"
-          data-type="branches"
-        >[sync branches]</a>
-        <a
-          class="link-secondary app--pointer app--buttonFetchRemoteById"
-          data-id="{{ _id }}"
-        >[fetch]</a>
-      </td>
-    </tr>
-    {{/each}}
-  </tbody>
-</table>
 <script src="js/tableHandler.js"></script>
 <script src="js/buttonFetchRemotesByGroup.js"></script>
 <script src="js/buttonSyncRemoteById.js"></script>
