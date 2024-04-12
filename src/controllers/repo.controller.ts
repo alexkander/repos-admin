@@ -76,20 +76,4 @@ export class RepoController {
   fetchRemotes(@Param('id') id: Types.ObjectId) {
     return this.repoService.fetchRepoRemotesById(id);
   }
-
-  /////////////////////
-  @Get('/compareWith/*')
-  compareWith(@Req() req?: Request) {
-    const repos = req.params['0'];
-    const regex = new RegExp(RepoControllerConstants.compareWithExtractor);
-    const matches = regex.exec(repos);
-    if (!matches) {
-      throw new BadRequestException('bad request');
-    }
-    const [, directoryFrom, directoryTo] = matches;
-    return this.repoService.compareRepos({
-      directoryFrom,
-      directoryTo,
-    });
-  }
 }

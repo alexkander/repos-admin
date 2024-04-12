@@ -1,6 +1,5 @@
 import {
   Controller,
-  Delete,
   Get,
   Param,
   ParseBoolPipe,
@@ -9,13 +8,13 @@ import {
   Query,
   Render,
 } from '@nestjs/common';
+import { Types } from 'mongoose';
 import { Remote } from '../schemas/remote.schema';
 import { RemoteService } from '../services/remote.service';
 import { SearchService } from '../services/search.service';
 import { RemoteGroupType, SyncRemoteActionType } from '../types/remotes.type';
 import { TableQueryParams } from '../types/utils.types';
 import { remoteSearchValidation } from '../validations/remote.search.validator';
-import { Types } from 'mongoose';
 
 const fields = [
   { field: 'directory', text: 'directory' },
@@ -71,22 +70,5 @@ export class RemoteController {
   @Put('/:id/fetch')
   fetchById(@Param('id') id: Types.ObjectId) {
     return this.remoteService.syncRemoteById(id);
-  }
-
-  /////////////////////
-  @Get('/:host/:group/remotesLonelyBranchesByGroup')
-  getRemotesLonelyBranchesByGroup(
-    @Param('host') host: string,
-    @Param('group') group: string,
-  ) {
-    return this.remoteService.remotesLonelyBranchesByGroup(host, group);
-  }
-
-  @Delete('/:host/:group/removeRemotesWithNoLonelyBranches')
-  removeRemotesWithNoLonelyBranches(
-    @Param('host') host: string,
-    @Param('group') group: string,
-  ) {
-    return this.remoteService.removeRemotesWithNoLonelyBranches(host, group);
   }
 }
