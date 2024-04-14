@@ -57,14 +57,22 @@ export class RemoteController {
     return this.remoteService.fetchRemotesByGroup(group);
   }
 
-  @Post('/:id/sync')
-  syncById(
-    @Param('id') id: Types.ObjectId,
-    @Query('type') type: SyncRemoteActionType = SyncRemoteActionType.base,
-    @Query('doFetch', new ParseBoolPipe({ optional: true }))
-    doFetch: boolean = false,
-  ) {
-    return this.remoteService.syncRemoteById(id, type, doFetch);
+  @Post('/:id/syncAll')
+  syncAllById(@Param('id') id: Types.ObjectId) {
+    return this.remoteService.syncRemoteById(
+      id,
+      SyncRemoteActionType.all,
+      true,
+    );
+  }
+
+  @Post('/:id/syncBranches')
+  syncBranchesById(@Param('id') id: Types.ObjectId) {
+    return this.remoteService.syncRemoteById(
+      id,
+      SyncRemoteActionType.branches,
+      false,
+    );
   }
 
   @Put('/:id/fetch')

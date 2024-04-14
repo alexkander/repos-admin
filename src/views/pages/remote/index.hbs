@@ -5,20 +5,23 @@
   <div class="row">
     <div class="col">
       <button
-        class="btn btn-info app--buttonFetchRemotesByGroup"
-        data-group="all"
+        class="btn btn-info app--buttonRequestAction"
+        data-url="/remote/fetchRemotesByGroup/all"
+        data-method="PUT"
       >
         Fetch all remotes
       </button>
       <button
-        class="btn btn-info app--buttonFetchRemotesByGroup"
-        data-group="fetchStatusError"
+        class="btn btn-info app--buttonRequestAction"
+        data-url="/remote/fetchRemotesByGroup/fetchStatusError"
+        data-method="PUT"
       >
         Fetch remotes with fetch error
       </button>
       <button
-        class="btn btn-info app--buttonFetchRemotesByGroup"
-        data-group="notFetched"
+        class="btn btn-info app--buttonRequestAction"
+        data-url="/remote/fetchRemotesByGroup/fetchStatusError"
+        data-method="PUT"
       >
         Fetch remotes not fetched yet
       </button>
@@ -46,23 +49,26 @@
         {{> tableRow fields=../fields }}
         <td class="text-nowrap">
           <a
-            class="link-secondary app--pointer app--buttonSyncRemoteById"
-            data-id="{{ _id }}"
-            data-type="all"
-            data-fetch="true"
-            >[sync all]</a
+            class="link-secondary app--pointer app--buttonRequestAction"
+            data-url="/remote/{{ _id }}/syncAll"
+            data-method="POST"
           >
+            [sync all]
+          </a>
           <a
-            class="link-secondary app--pointer app--buttonSyncRemoteById"
-            data-id="{{ _id }}"
-            data-type="branches"
-            >[sync branches]</a
+            class="link-secondary app--pointer app--buttonRequestAction"
+            data-url="/remote/{{ _id }}/syncBranches"
+            data-method="POST"
           >
+            [sync branches]
+          </a>
           <a
-            class="link-secondary app--pointer app--buttonFetchRemoteById"
-            data-id="{{ _id }}"
-            >[fetch]</a
+            class="link-secondary app--pointer app--buttonRequestAction"
+            data-url="/remote/{{ _id }}/fetch"
+            data-method="PUT"
           >
+            [fetch]
+          </a>
         </td>
       </tr>
       {{/each}}
@@ -70,7 +76,5 @@
   </table>
 </div>
 <script src="js/tableHandler.js"></script>
-<script src="js/buttonFetchRemotesByGroup.js"></script>
-<script src="js/buttonSyncRemoteById.js"></script>
-<script src="js/buttonFetchRemoteById.js"></script>
+<script src="js/buttonRequestAction.js"></script>
 {{/layout}}

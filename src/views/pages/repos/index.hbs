@@ -4,13 +4,17 @@
 <div class="container-fluid">
   <div class="row">
     <div class="col">
-      <button class="btn btn-info app--buttonSyncRepo" data-type="base">
+      <button
+        class="btn btn-info app--buttonRequestAction"
+        data-url="/repo/syncBase"
+        data-method="POST"
+      >
         Sync repos
       </button>
       <button
-        class="btn btn-info app--buttonSyncRepo"
-        data-type="all"
-        data-fetch="true"
+        class="btn btn-info app--buttonRequestAction"
+        data-url="/repo/syncAll"
+        data-method="POST"
       >
         Sync repos, remotes and branches
       </button>
@@ -40,32 +44,36 @@
         {{> tableRow fields=../fields }}
         <td class="text-nowrap">
           <a
-            class="link-secondary app--pointer app--buttonSyncRepoById"
-            data-id="{{ _id }}"
-            data-type="all"
-            data-fetch="true"
-            >[sync all]</a
+            class="link-secondary app--pointer app--buttonRequestAction"
+            data-url="/repo/{{ _id }}/syncAll"
+            data-method="POST"
           >
+            [sync all]
+          </a>
           <a
-            class="link-secondary app--pointer app--buttonSyncRepoById"
-            data-id="{{ _id }}"
-            data-type="remotes"
-            >[sync remotes]</a
+            class="link-secondary app--pointer app--buttonRequestAction"
+            data-url="/repo/{{ _id }}/syncRemotes"
+            data-method="POST"
           >
+            [sync remotes]
+          </a>
           <a
-            class="link-secondary app--pointer app--buttonFetchRepoRemotesById"
-            data-id="{{ _id }}"
-            >[fetch remotes]</a
+            class="link-secondary app--pointer app--buttonRequestAction"
+            data-id="/repo/{{ _id }}/fetchRemotes"
+            data-method="PUT"
           >
+            [fetch remotes]
+          </a>
           <a
-            class="link-secondary app--pointer app--buttonSyncRepoById"
-            data-id="{{ _id }}"
-            data-type="branches"
-            >[sync branches]</a
+            class="link-secondary app--pointer app--buttonRequestAction"
+            data-url="/repo/{{ _id }}/syncBranches"
+            data-method="POST"
           >
-          <a class="link-secondary" href="/repo/{{ _id }}/checkStatus"
-            >[check status]</a
-          >
+            [sync branches]
+          </a>
+          <a class="link-secondary" href="/repo/{{ _id }}/checkStatus">
+            [check status]
+          </a>
         </td>
       </tr>
       {{/each}}
@@ -73,7 +81,5 @@
   </table>
 </div>
 <script src="js/tableHandler.js"></script>
-<script src="js/buttonSyncRepo.js"></script>
-<script src="js/buttonSyncRepoById.js"></script>
-<script src="js/buttonFetchRepoRemotesById.js"></script>
+<script src="js/buttonRequestAction.js"></script>
 {{/layout}}

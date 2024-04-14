@@ -8,7 +8,6 @@ export class Branch {
   @Prop() directory: string;
   @Prop() shortName: string;
   @Prop() largeName: string;
-  @Prop() isRemote: boolean;
   @Prop() remote?: string;
   @Prop() commit: string;
 }

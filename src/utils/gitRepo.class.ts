@@ -32,7 +32,6 @@ export class GitRepo {
     const remotesNames = (await this.getRemotes()).map(({ name }) => name);
     const branchesInfo = await this.handler.branch();
     const branches = Object.values(branchesInfo.branches).map((branch) => {
-      const isRemote = branch.name.startsWith(BranchConstants.remotePrefix);
       const remote = remotesNames.find((remoteName) => {
         const remotePrefix = `${BranchConstants.remotePrefix}${remoteName}`;
         return branch.name.startsWith(remotePrefix);
@@ -47,7 +46,6 @@ export class GitRepo {
       const result: GitBranchType = {
         shortName,
         largeName,
-        isRemote,
         remote,
         commit,
       };
@@ -93,9 +91,13 @@ export class GitRepo {
 
   async getRemoteBranches(remoteName: string) {
     const lines = await this.handler.raw(['ls-remote', '--heads', remoteName]);
-    return lines.split('\n').map((line) => {
-      const [commit, refName] = line.split('\trefs/heads/');
-      return { commit, refName };
-    });
+
+    return lines
+      .trim()
+      .split('\n')
+      .map((line) => {
+        const [commit, refName] = line.split('\trefs/heads/');
+        return { commit, refName };
+      });
   }
 }
