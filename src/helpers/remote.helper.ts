@@ -1,4 +1,3 @@
-import { routes } from '../utils/routes';
 import { RemoteConstants } from '../constants/remote.constants';
 import { Remote } from '../schemas/remote.schema';
 import { GitBranchType, GitRemoteType } from '../types/gitRepo.types';
@@ -6,8 +5,7 @@ import {
   FetchLogStatusType,
   RemoteFetchStatus,
   RemoteFilterQuery,
-  RemoteUrlType,
-  SyncRemoteActionType,
+  RemoteUrlType
 } from '../types/remotes.type';
 import { GitRepo } from '../utils/gitRepo.class';
 import { RepoHelper } from './repo.helper';
@@ -113,13 +111,5 @@ export class RemoteHelper {
       ? targetNameRaw.substring(0, len)
       : targetNameRaw;
     return targetName;
-  }
-
-  static isSyncBranch(type: SyncRemoteActionType) {
-    return (
-      [SyncRemoteActionType.all, SyncRemoteActionType.branches].indexOf(
-        type,
-      ) !== -1
-    );
   }
 }

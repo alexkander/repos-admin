@@ -4,10 +4,10 @@ import { RepoHelper } from '../helpers/repo.helper';
 import { RemoteRepository } from '../repositories/remote.repository';
 import { RepoRepository } from '../repositories/repo.repository';
 import { Repo } from '../schemas/repo.schema';
-import { SyncRepoActionType } from '../types/repos.types';
 import { SortQueryData } from '../types/utils.types';
 import { GitService } from './git.service';
 import { LoggerService } from './logger.service';
+import { SyncRepoOptions } from 'src/types/repos.types';
 
 @Injectable()
 export class RepoService {
@@ -26,21 +26,11 @@ export class RepoService {
     return this.repoRepository.findAll(query, sort);
   }
 
-  async syncAll(
-    type: SyncRepoActionType = SyncRepoActionType.base,
-    doFetch?: boolean,
-  ) {
-    this.logger.doLog(
-      `starts syn of all repo: type=${type} doFetch=${doFetch}`,
-    );
+  async syncAll(opts: SyncRepoOptions) {
     await this.repoRepository.truncate();
     const createdRepos = await RepoHelper.forEachRepositoryIn({
       callback: (directory) => {
-        return this.syncRepoByDirectory({
-          directory,
-          type,
-          doFetch,
-        });
+        return this.syncRepoByDirectory(directory, opts);
       },
     });
     this.logger.doLog(
@@ -49,66 +39,27 @@ export class RepoService {
     return createdRepos;
   }
 
-  async syncRepoById(
-    id: Types.ObjectId,
-    type: SyncRepoActionType = SyncRepoActionType.base,
-    doFetch?: boolean,
-  ) {
-    this.logger.doLog(
-      `starts sync repo by id: type=${type} doFetch=${doFetch}`,
-    );
+  async syncRepoById(id: Types.ObjectId, opts: SyncRepoOptions) {
     const repo = await this.repoRepository.findById(id);
-    return this.syncRepoByDirectory({
-      directory: repo.directory,
-      type,
-      doFetch,
-    });
+    return this.syncRepoByDirectory(repo.directory, opts);
   }
 
-  async syncRepoByDirectory({
-    directory,
-    type,
-    doFetch,
-  }: {
-    directory: string;
-    type: SyncRepoActionType;
-    doFetch: boolean;
-  }) {
+  async syncRepoByDirectory(directory: string, opts: SyncRepoOptions) {
     this.logger.doLog(`sync repo in: ${directory}`);
+
     const repoData = await RepoHelper.getRepoDataFromDirectory(directory);
-    if (type === SyncRepoActionType.base) {
-      return this.syncRepoInDirectory(repoData);
-    }
-    return this.syncRepoRemotesAndBranchesInDirectory(repoData, {
-      type,
-      doFetch,
-    });
-  }
-
-  async syncRepoInDirectory(repoData: Repo) {
-    const repoSynched = await this.repoRepository.upsertByDirectory(repoData);
-    return { repoSynched };
-  }
-
-  async syncRepoRemotesAndBranchesInDirectory(
-    repoData: Repo,
-    {
-      doFetch,
-      type = SyncRepoActionType.base,
-    }: {
-      type: SyncRepoActionType;
-      doFetch?: boolean;
-    },
-  ) {
     const gitRepo = RepoHelper.getGitRepo(repoData.directory);
-    const opts = { gitRepo, directory: repoData.directory };
+    const params = { gitRepo, directory: repoData.directory };
 
-    const remotesSynched = RepoHelper.isSyncRemote(type)
-      ? await this.gitService.syncDirectoryRemotes({ ...opts, doFetch })
+    const remotesSynched = opts.syncRemotes
+      ? await this.gitService.syncDirectoryRemotes({
+          ...params,
+          doFetch: opts.doFetch,
+        })
       : null;
 
-    const branchesSynched = RepoHelper.isSyncBranch(type)
-      ? await this.gitService.syncDirectoryBranches({ ...opts })
+    const branchesSynched = opts.syncBranches
+      ? await this.gitService.syncDirectoryBranches({ ...params })
       : null;
 
     repoData.remotes = remotesSynched?.length || null;
@@ -165,8 +116,6 @@ export class RepoService {
       branchItem.largeNames[branch.remote || 'local'] = branch.largeName;
     });
     const branches = Object.values(branchesMap);
-    const remoteBranches = await gitRepo.getRemoteBranches('origin');
-    console.log(remoteBranches);
     return { repo, branches, remotes, allRemotes };
   }
 }

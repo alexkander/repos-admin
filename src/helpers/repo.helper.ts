@@ -3,7 +3,6 @@ import { glob } from 'glob';
 import { configuration } from '../configuration/configuration';
 import { RepoConstants } from '../constants/repo.constants';
 import { Repo } from '../schemas/repo.schema';
-import { SyncRepoActionType } from '../types/repos.types';
 import { GitRepo } from '../utils/gitRepo.class';
 import { routes } from '../utils/routes';
 
@@ -78,17 +77,5 @@ export class RepoHelper {
     return subDirectories.map((subDir) => {
       return subDir.split('\\').join('/');
     });
-  }
-
-  static isSyncRemote(type: SyncRepoActionType) {
-    return (
-      [SyncRepoActionType.all, SyncRepoActionType.remotes].indexOf(type) !== -1
-    );
-  }
-
-  static isSyncBranch(type: SyncRepoActionType) {
-    return (
-      [SyncRepoActionType.all, SyncRepoActionType.branches].indexOf(type) !== -1
-    );
   }
 }

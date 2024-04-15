@@ -3,9 +3,8 @@ export type ReposComparisonParams = {
   directoryTo: string;
 };
 
-export enum SyncRepoActionType {
-  base = 'base',
-  all = 'all',
-  remotes = 'remotes',
-  branches = 'branches',
-}
+export type SyncRepoOptions = {
+  syncRemotes: boolean;
+  syncBranches: boolean;
+  doFetch: boolean;
+};

@@ -2,17 +2,16 @@ import {
   Controller,
   Get,
   Param,
-  ParseBoolPipe,
   Post,
   Put,
   Query,
-  Render,
+  Render
 } from '@nestjs/common';
 import { Types } from 'mongoose';
 import { Remote } from '../schemas/remote.schema';
 import { RemoteService } from '../services/remote.service';
 import { SearchService } from '../services/search.service';
-import { RemoteGroupType, SyncRemoteActionType } from '../types/remotes.type';
+import { RemoteGroupType } from '../types/remotes.type';
 import { TableQueryParams } from '../types/utils.types';
 import { remoteSearchValidation } from '../validations/remote.search.validator';
 
@@ -57,26 +56,11 @@ export class RemoteController {
     return this.remoteService.fetchRemotesByGroup(group);
   }
 
-  @Post('/:id/syncAll')
-  syncAllById(@Param('id') id: Types.ObjectId) {
-    return this.remoteService.syncRemoteById(
-      id,
-      SyncRemoteActionType.all,
-      true,
-    );
-  }
-
-  @Post('/:id/syncBranches')
-  syncBranchesById(@Param('id') id: Types.ObjectId) {
-    return this.remoteService.syncRemoteById(
-      id,
-      SyncRemoteActionType.branches,
-      false,
-    );
-  }
-
-  @Put('/:id/fetch')
-  fetchById(@Param('id') id: Types.ObjectId) {
-    return this.remoteService.syncRemoteById(id);
+  @Post('/:id/sync')
+  syncById(@Param('id') id: Types.ObjectId) {
+    return this.remoteService.syncRemoteById(id, {
+      syncBranches: true,
+      doFetch: true,
+    });
   }
 }

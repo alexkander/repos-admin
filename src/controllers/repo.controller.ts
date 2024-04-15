@@ -1,17 +1,8 @@
-import {
-  Controller,
-  Get,
-  Param,
-  Post,
-  Put,
-  Query,
-  Render
-} from '@nestjs/common';
+import { Controller, Get, Param, Post, Query, Render } from '@nestjs/common';
 import { Types } from 'mongoose';
 import { Repo } from '../schemas/repo.schema';
 import { RepoService } from '../services/repo.service';
 import { SearchService } from '../services/search.service';
-import { SyncRepoActionType } from '../types/repos.types';
 import { TableQueryParams } from '../types/utils.types';
 import { repoSearchValidation } from '../validations/repo.search.validator';
 
@@ -50,36 +41,29 @@ export class RepoController {
 
   @Post('/syncBase')
   syncBase() {
-    return this.repoService.syncAll(SyncRepoActionType.base, false);
+    return this.repoService.syncAll({
+      doFetch: false,
+      syncBranches: false,
+      syncRemotes: false,
+    });
   }
 
   @Post('/syncAll')
   syncAll() {
-    return this.repoService.syncAll(SyncRepoActionType.all, true);
+    return this.repoService.syncAll({
+      doFetch: true,
+      syncBranches: true,
+      syncRemotes: true,
+    });
   }
 
   @Post('/:id/syncAll')
   syncAllById(@Param('id') id: Types.ObjectId) {
-    return this.repoService.syncRepoById(id, SyncRepoActionType.all, true);
-  }
-
-  @Post('/:id/syncRemotes')
-  syncRemotesById(@Param('id') id: Types.ObjectId) {
-    return this.repoService.syncRepoById(id, SyncRepoActionType.remotes, false);
-  }
-
-  @Post('/:id/syncBranches')
-  syncBranchesById(@Param('id') id: Types.ObjectId) {
-    return this.repoService.syncRepoById(
-      id,
-      SyncRepoActionType.branches,
-      false,
-    );
-  }
-
-  @Put('/:id/fetchRemotes')
-  fetchRemotes(@Param('id') id: Types.ObjectId) {
-    return this.repoService.fetchRepoRemotesById(id);
+    return this.repoService.syncRepoById(id, {
+      doFetch: true,
+      syncBranches: true,
+      syncRemotes: true,
+    });
   }
 
   @Get('/:id/checkStatus')

@@ -4,7 +4,7 @@ import { RemoteHelper } from '../helpers/remote.helper';
 import { RepoHelper } from '../helpers/repo.helper';
 import { RemoteRepository } from '../repositories/remote.repository';
 import { Remote } from '../schemas/remote.schema';
-import { RemoteGroupType, SyncRemoteActionType } from '../types/remotes.type';
+import { RemoteGroupType, SyncRemoteOptions } from '../types/remotes.type';
 import { SortQueryData } from '../types/utils.types';
 import { GitService } from './git.service';
 import { LoggerService } from './logger.service';
@@ -50,21 +50,13 @@ export class RemoteService {
     return fetchResults;
   }
 
-  async syncRemoteById(
-    id: Types.ObjectId,
-    type: SyncRemoteActionType = SyncRemoteActionType.base,
-    doFetch?: boolean,
-  ) {
-    this.logger.doLog(
-      `starts sync remote by id: type=${type} doFetch=${doFetch}`,
-    );
+  async syncRemoteById(id: Types.ObjectId, opts: SyncRemoteOptions) {
     const remote = await this.remoteRepository.findById(id);
-    return this.syncRemoteByDirectory({
-      directory: remote.directory,
-      remoteName: remote.name,
-      type,
-      doFetch,
-    });
+    return this.syncRemoteByDirectoryAndName(
+      remote.directory,
+      remote.name,
+      opts,
+    );
   }
 
   async fetchById(id: Types.ObjectId) {
@@ -80,55 +72,24 @@ export class RemoteService {
     return remoteFetched;
   }
 
-  async syncRemoteByDirectory({
-    directory,
-    remoteName,
-    type,
-    doFetch,
-  }: {
-    directory: string;
-    remoteName: string;
-    type: SyncRemoteActionType;
-    doFetch: boolean;
-  }) {
+  async syncRemoteByDirectoryAndName(
+    directory: string,
+    remoteName: string,
+    opts: SyncRemoteOptions,
+  ) {
     this.logger.doLog(`sync remote ${remoteName} in: ${directory}`);
     const remoteData = await RemoteHelper.getRemoteDataFromDirectory({
       directory,
       remoteName,
     });
-    if (type === SyncRemoteActionType.base) {
-      return this.syncRemoteInDirectory(remoteData);
-    }
-    return this.syncRemoteAndBranchesInDirectory(remoteData, {
-      type,
-      doFetch,
-    });
-  }
-
-  async syncRemoteInDirectory(remoteData: Remote) {
-    const remoteSynched =
-      await this.remoteRepository.upsertByDirectoryAndName(remoteData);
-    return { remoteSynched };
-  }
-
-  async syncRemoteAndBranchesInDirectory(
-    remoteData: Remote,
-    {
-      type = SyncRemoteActionType.base,
-      doFetch,
-    }: {
-      type: SyncRemoteActionType;
-      doFetch?: boolean;
-    },
-  ) {
     const gitRepo = RepoHelper.getGitRepo(remoteData.directory);
-    const opts = {
+    const params = {
       gitRepo,
       directory: remoteData.directory,
       remoteName: remoteData.name,
     };
 
-    if (doFetch) {
+    if (opts.doFetch) {
       this.logger.doLog(`  fetch remote: ${remoteData.name}`);
       const status = await RemoteHelper.fetchRemote({
         directory: remoteData.directory,
@@ -137,8 +98,8 @@ export class RemoteService {
       Object.assign(remoteData, status);
     }
 
-    const branchesSynched = RemoteHelper.isSyncBranch(type)
-      ? await this.gitService.syncDirectoryBranches({ ...opts })
+    const branchesSynched = opts.syncBranches
+      ? await this.gitService.syncDirectoryBranches({ ...params })
       : null;
 
     remoteData.branches = branchesSynched?.length || null;
