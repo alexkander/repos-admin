@@ -33,7 +33,7 @@ export class GitService {
   async syncDirectoryRemote(
     directory: string,
     gitRemote: GitRemoteType,
-    branches: number,
+    branches: GitBranchType[],
     doFetch?: boolean,
   ) {
     this.logger.doLog(`  sync remote: ${gitRemote.name}`);
@@ -41,7 +41,8 @@ export class GitService {
       gitRemote,
       directory,
     });
-    remoteData.branches = branches;
+    remoteData.branches = branches.length;
+    remoteData.localSynchs = branches.filter((b) => b.localSynched).length;
     if (doFetch) {
       this.logger.doLog(`  fetch remote: ${gitRemote.name}`);
       const status = await RemoteHelper.fetchRemote({
@@ -83,7 +84,7 @@ export class GitService {
       return this.syncDirectoryRemote(
         directory,
         gitRemote,
-        remotesBranches.length,
+        remotesBranches,
         doFetch,
       );
     });
@@ -95,18 +96,27 @@ export class GitService {
   async syncDirectoryBranches({
     gitRepo,
     directory,
-    remoteName,
+    remoteNames,
   }: {
     gitRepo: GitRepo;
     directory: string;
-    remoteName?: string;
+    remoteNames: string[];
   }) {
     const valid = await gitRepo.isRepo();
     if (!valid) return null;
     const allBranches = await gitRepo.getBranches();
     const gitBranches = allBranches.filter((b) => {
-      return !remoteName || remoteName === b.remote;
+      return !b.remote || remoteNames.indexOf(b.remote) !== -1;
     });
+    const branchesRemotes = await gitRepo.getBranchesFromRemotes(remoteNames);
+
+    gitBranches.forEach((b) => {
+      const branchRemote = branchesRemotes.find(
+        (br) => b.shortName === br.refName && b.remote === br.remoteName,
+      );
+      b.remoteSynched = branchRemote?.commit.startsWith(b.commit) || false;
+    });
+
     this.logger.doLog(`- branches to sync ${gitBranches.length}`);
     const upsertPromises = gitBranches.map((gitBranch) => {
       return this.syncDirectoryBranch(directory, gitBranch);

@@ -10,6 +10,8 @@ export class Branch {
   @Prop() largeName: string;
   @Prop() remote?: string;
   @Prop() commit: string;
+  @Prop() remoteSynched?: boolean;
+  @Prop() localSynched?: boolean;
 }
 
 export const BranchSchema = SchemaFactory.createForClass(Branch);

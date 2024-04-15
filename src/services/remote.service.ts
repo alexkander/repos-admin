@@ -99,9 +99,14 @@ export class RemoteService {
     }
 
     const branchesSynched = opts.syncBranches
-      ? await this.gitService.syncDirectoryBranches({ ...params })
+      ? await this.gitService.syncDirectoryBranches({
+          ...params,
+          remoteNames: [remoteData.name],
+        })
       : null;
 
+    remoteData.localSynchs =
+      (branchesSynched || []).filter((b) => b.localSynched).length || null;
     remoteData.branches = branchesSynched?.length || null;
 
     const remoteSynched =

@@ -25,6 +25,7 @@ const fields = [
   { field: 'url', text: 'url' },
   { field: 'urlType', text: 'urlType' },
   { field: 'branches', text: 'branches' },
+  { field: 'localSynchs', text: 'localSynchs' },
   { field: 'fetchStatus', text: 'status' },
 ];
 @Controller('remote')

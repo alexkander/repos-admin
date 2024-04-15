@@ -12,6 +12,7 @@ export class Remote {
   @Prop() rare: boolean;
   @Prop(raw({})) refs: Record<string, any>;
   @Prop() branches?: number;
+  @Prop() localSynchs?: number;
   @Prop() urlType?: RemoteUrlType;
   @Prop() targetHost?: string | null;
   @Prop() targetGroup?: string;

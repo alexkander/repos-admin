@@ -13,4 +13,6 @@ export type GitBranchType = {
   largeName: string;
   remote: string;
   commit: string;
+  remoteSynched?: boolean;
+  localSynched?: boolean;
 };

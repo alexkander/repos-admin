@@ -52,6 +52,16 @@ export class GitRepo {
 
       return result;
     });
+    branches.forEach((branch) => {
+      if (branch.remote) {
+        const localBranch = branches.find(
+          (lb) => !lb.remote && lb.shortName === branch.shortName,
+        );
+        branch.localSynched = branch.commit === localBranch?.commit;
+      } else {
+        //
+      }
+    });
     return branches;
   }
 
@@ -89,7 +99,7 @@ export class GitRepo {
     return this.handler.removeRemote(remoteName);
   }
 
-  async getRemoteBranches(remoteName: string) {
+  async listRemoteBranches(remoteName: string) {
     const lines = await this.handler.raw(['ls-remote', '--heads', remoteName]);
 
     return lines
@@ -97,7 +107,13 @@ export class GitRepo {
       .split('\n')
       .map((line) => {
         const [commit, refName] = line.split('\trefs/heads/');
-        return { commit, refName };
+        return { remoteName, commit, refName };
       });
+  }
+
+  async getBranchesFromRemotes(remoteNames: string[]) {
+    const promises = remoteNames.map((r) => this.listRemoteBranches(r));
+    const branchesResults = await Promise.all(promises);
+    return branchesResults.flatMap((r) => r);
   }
 }

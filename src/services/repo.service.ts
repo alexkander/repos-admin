@@ -58,8 +58,13 @@ export class RepoService {
         })
       : null;
 
+    const remoteNames = (remotesSynched || []).map((r) => r.name);
+
     const branchesSynched = opts.syncBranches
-      ? await this.gitService.syncDirectoryBranches({ ...params })
+      ? await this.gitService.syncDirectoryBranches({
+          ...params,
+          remoteNames,
+        })
       : null;
 
     repoData.remotes = remotesSynched?.length || null;
