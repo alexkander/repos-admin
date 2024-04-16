@@ -1,6 +1,7 @@
 import { BadGatewayException, Injectable } from '@nestjs/common';
 import { FilterQuery, Types } from 'mongoose';
-import { GitBranchType } from 'src/types/gitRepo.types';
+import { BranchRepository } from 'src/repositories/branch.repository';
+import { Branch } from 'src/schemas/branch.schema';
 import { SyncRepoOptions } from 'src/types/repos.types';
 import { RepoHelper } from '../helpers/repo.helper';
 import { RemoteRepository } from '../repositories/remote.repository';
@@ -16,6 +17,7 @@ export class RepoService {
     private readonly logger: LoggerService,
     private readonly repoRepository: RepoRepository,
     private readonly remoteRepository: RemoteRepository,
+    private readonly branchesRepository: BranchRepository,
     private readonly gitService: GitService,
   ) { }
 
@@ -54,19 +56,19 @@ export class RepoService {
 
     const remotesSynched = opts.syncRemotes
       ? await this.gitService.syncDirectoryRemotes({
-          ...params,
-          doFetch: opts.doFetch,
-        })
+        ...params,
+        doFetch: opts.doFetch,
+      })
       : null;
 
     const remoteNames = remotesSynched?.map((r) => r.name) || [];
 
     const branchesSynched = opts.syncBranches
       ? await this.gitService.syncDirectoryBranches({
-          ...params,
-          remoteNames,
-          allRemotes: true,
-        })
+        ...params,
+        remoteNames,
+        allRemotes: true,
+      })
       : null;
 
     repoData.remotes = remotesSynched?.length || 0;
@@ -102,18 +104,25 @@ export class RepoService {
 
   async checkStatusById(id: Types.ObjectId) {
     const repo = await this.repoRepository.findById(id);
-    const gitRepo = RepoHelper.getGitRepo(repo.directory);
-    const allBranches = await gitRepo.getBranches();
-    const allRemotes = await gitRepo.getRemotes();
+    const allBranches = await this.branchesRepository.findByRepo(repo);
+    const allRemotes = await this.remoteRepository.findByRepo(repo);
     const remotes = [{ name: 'local' }].concat(allRemotes);
+    const branchesToCheckout = allBranches.map((branch) => {
+      const canCheckout = this.canCheckoutRemoteBranch(branch, allBranches);
+      return {
+        ...branch,
+        id: branch._id.toString(),
+        canCheckout,
+      };
+    });
     const branchesMap: Record<
       string,
       {
         name: string;
-        branchesByRemote: Record<string, GitBranchType>;
+        branchesByRemote: Record<string, Branch>;
       }
     > = {};
-    allBranches.forEach((branch) => {
+    branchesToCheckout.forEach((branch) => {
       const key = branch.shortName;
       branchesMap[key] = branchesMap[key] || {
         name: branch.shortName,
@@ -122,6 +131,22 @@ export class RepoService {
       branchesMap[key].branchesByRemote[branch.remote || 'local'] = branch;
     });
     const branches = Object.values(branchesMap);
-    return { repo, remotes, allRemotes, branches };
+    return {
+      repo,
+      remotes,
+      allRemotes,
+      allBranches,
+      branchesToCheckout,
+      branches,
+    };
+  }
+
+  canCheckoutRemoteBranch(branch: Branch, allBranches: Branch[]) {
+    if (!branch.remote) {
+      return false;
+    }
+    return !allBranches.find(
+      (b) => !b.remote && b.shortName === branch.shortName,
+    );
   }
 }

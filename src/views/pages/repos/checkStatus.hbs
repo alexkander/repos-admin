@@ -56,6 +56,14 @@
           <span {{#unless backedUp }}class="text-danger"{{/unless }}>
             <strong class="app--code">[{{ commit }}]</strong>
             <span>{{ largeName }}</span>
+            {{#if canCheckout }}
+            <a
+              class="app--pointer"
+              data-bs-toggle="modal"
+              data-bs-target="#appCheckoutModal"
+            >[checkout]</a>
+            </li>
+            {{/if }}
           </span>
           {{/with }}
         </td>
@@ -65,5 +73,31 @@
     </tbody>
   </table>
 </div>
+
+<div class="modal fade" id="appCheckoutModal" tabindex="-1" aria-labelledby="appCheckoutModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="appCheckoutModalLabel">Checkout modal</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <select class="form-select" aria-label="Select the remote branch">
+          {{#each branchesToCheckout }}
+          <option value="{{id}}" {{#unless canCheckout}}disabled class="text-danger"{{/unless}}>
+            {{ largeName }}
+            {{#unless canCheckout}}(already exists){{/unless}}
+          </option>
+          {{/each}}
+        </select>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary">Save changes</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script src="/js/buttonRequestAction.js"></script>
 {{/layout}}
