@@ -11,7 +11,7 @@ export class Branch {
   @Prop() remote?: string;
   @Prop() commit: string;
   @Prop() remoteSynched?: boolean;
-  @Prop() localSynched?: boolean;
+  @Prop() backedUp?: boolean;
 }
 
 export const BranchSchema = SchemaFactory.createForClass(Branch);

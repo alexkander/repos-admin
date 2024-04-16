@@ -14,5 +14,5 @@ export type GitBranchType = {
   remote: string;
   commit: string;
   remoteSynched?: boolean;
-  localSynched?: boolean;
+  backedUp?: boolean;
 };

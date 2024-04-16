@@ -42,7 +42,7 @@ export class GitService {
       directory,
     });
     remoteData.branches = branches.length;
-    remoteData.localSynchs = branches.filter((b) => b.localSynched).length;
+    remoteData.branchesToCheck = branches.filter((b) => !b.backedUp).length;
     if (doFetch) {
       this.logger.doLog(`  fetch remote: ${gitRemote.name}`);
       const status = await RemoteHelper.fetchRemote({
@@ -97,17 +97,19 @@ export class GitService {
     gitRepo,
     directory,
     remoteNames,
+    allRemotes,
   }: {
     gitRepo: GitRepo;
     directory: string;
     remoteNames: string[];
+    allRemotes?: boolean;
   }) {
     const valid = await gitRepo.isRepo();
     if (!valid) return null;
     const allBranches = await gitRepo.getBranches();
-    const gitBranches = allBranches.filter((b) => {
-      return !b.remote || remoteNames.indexOf(b.remote) !== -1;
-    });
+    const gitBranches = allRemotes
+      ? [...allBranches]
+      : allBranches.filter((b) => remoteNames.indexOf(b.remote) !== -1);
     const branchesRemotes = await gitRepo.getBranchesFromRemotes(remoteNames);
 
     gitBranches.forEach((b) => {

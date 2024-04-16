@@ -105,8 +105,8 @@ export class RemoteService {
         })
       : null;
 
-    remoteData.localSynchs =
-      (branchesSynched || []).filter((b) => b.localSynched).length || null;
+    remoteData.branchesToCheck =
+      branchesSynched?.filter((b) => !b.backedUp)?.length || null;
     remoteData.branches = branchesSynched?.length || null;
 
     const remoteSynched =

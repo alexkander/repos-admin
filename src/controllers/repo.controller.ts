@@ -13,6 +13,7 @@ const fields = [
   { field: 'valid', text: 'is valid' },
   { field: 'remotes', text: 'remotes' },
   { field: 'branches', text: 'branches' },
+  { field: 'branchesToCheck', text: 'branchesToCheck' },
 ];
 
 @Controller('repo')

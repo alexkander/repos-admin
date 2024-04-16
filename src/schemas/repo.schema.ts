@@ -11,6 +11,7 @@ export class Repo {
   @Prop() valid: boolean;
   @Prop() remotes?: number;
   @Prop() branches?: number;
+  @Prop() branchesToCheck?: number;
 }
 
 export const RepoSchema = SchemaFactory.createForClass(Repo);

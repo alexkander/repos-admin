@@ -58,17 +58,20 @@ export class RepoService {
         })
       : null;
 
-    const remoteNames = (remotesSynched || []).map((r) => r.name);
+    const remoteNames = remotesSynched.map((r) => r.name) || [];
 
     const branchesSynched = opts.syncBranches
       ? await this.gitService.syncDirectoryBranches({
           ...params,
           remoteNames,
+          allRemotes: true,
         })
       : null;
 
     repoData.remotes = remotesSynched?.length || null;
     repoData.branches = branchesSynched?.length || null;
+    repoData.branchesToCheck =
+      branchesSynched?.filter((b) => !b.backedUp)?.length || null;
 
     const repoSynched = await this.repoRepository.upsertByDirectory(repoData);
 
