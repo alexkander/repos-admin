@@ -1,3 +1,7 @@
 .app--pointer{
   cursor: pointer;
 }
+
+.app--code{
+  font-family: var(--bs-font-monospace);
+}

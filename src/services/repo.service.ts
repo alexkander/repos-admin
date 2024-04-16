@@ -1,5 +1,7 @@
 import { BadGatewayException, Injectable } from '@nestjs/common';
 import { FilterQuery, Types } from 'mongoose';
+import { GitBranchType } from 'src/types/gitRepo.types';
+import { SyncRepoOptions } from 'src/types/repos.types';
 import { RepoHelper } from '../helpers/repo.helper';
 import { RemoteRepository } from '../repositories/remote.repository';
 import { RepoRepository } from '../repositories/repo.repository';
@@ -7,7 +9,6 @@ import { Repo } from '../schemas/repo.schema';
 import { SortQueryData } from '../types/utils.types';
 import { GitService } from './git.service';
 import { LoggerService } from './logger.service';
-import { SyncRepoOptions } from 'src/types/repos.types';
 
 @Injectable()
 export class RepoService {
@@ -58,7 +59,7 @@ export class RepoService {
         })
       : null;
 
-    const remoteNames = remotesSynched.map((r) => r.name) || [];
+    const remoteNames = remotesSynched?.map((r) => r.name) || [];
 
     const branchesSynched = opts.syncBranches
       ? await this.gitService.syncDirectoryBranches({
@@ -68,10 +69,10 @@ export class RepoService {
         })
       : null;
 
-    repoData.remotes = remotesSynched?.length || null;
-    repoData.branches = branchesSynched?.length || null;
+    repoData.remotes = remotesSynched?.length || 0;
+    repoData.branches = branchesSynched?.length || 0;
     repoData.branchesToCheck =
-      branchesSynched?.filter((b) => !b.backedUp)?.length || null;
+      branchesSynched?.filter((b) => !b.backedUp)?.length || 0;
 
     const repoSynched = await this.repoRepository.upsertByDirectory(repoData);
 
@@ -109,21 +110,18 @@ export class RepoService {
       string,
       {
         name: string;
-        commits: Record<string, string>;
-        largeNames: Record<string, string>;
+        branchesByRemote: Record<string, GitBranchType>;
       }
     > = {};
     allBranches.forEach((branch) => {
-      const branchItem = branchesMap[branch.shortName] || {
+      const key = branch.shortName;
+      branchesMap[key] = branchesMap[key] || {
         name: branch.shortName,
-        commits: {},
-        largeNames: {},
+        branchesByRemote: {},
       };
-      branchesMap[branch.shortName] = branchItem;
-      branchItem.commits[branch.remote || 'local'] = branch.commit;
-      branchItem.largeNames[branch.remote || 'local'] = branch.largeName;
+      branchesMap[key].branchesByRemote[branch.remote || 'local'] = branch;
     });
     const branches = Object.values(branchesMap);
-    return { repo, branches, remotes, allRemotes };
+    return { repo, remotes, allRemotes, branches };
   }
 }

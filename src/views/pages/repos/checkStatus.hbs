@@ -3,15 +3,25 @@
 <div>{{> alerts }}</div>
 
 <div class="container-fluid">
-  <h3>{{repo.directory}}</h3>
+  <h3 class="m-0">{{ repo.directory }}</h3>
+  <div>
+    <a
+      class="link-secondary app--pointer app--buttonRequestAction"
+      data-url="/repo/{{ repo._id }}/syncAll"
+      data-method="POST"
+    >
+      [sync]
+    </a>
+  </div>
+  <hr>
   <h5>remotes ({{ allRemotes.length }})</h5>
-  <table class="table">
+  <table class="table table-sm">
     <thead>
       <tr>
         <th>#</th>
         <th>name</th>
         <th>url</th>
-      </tr>  
+      </tr>
     </thead>
     <tbody>
       {{#each allRemotes }}
@@ -23,8 +33,9 @@
       {{/each }}
     </tbody>
   </table>
+  <hr>
   <h5>branches ({{ branches.length }})</h5>
-  <table class="table">
+  <table class="table table-sm">
     <thead>
       <tr>
         <th>#</th>
@@ -41,13 +52,18 @@
         <td>{{ name }}</td>
         {{#each ../remotes }}
         <td>
-          <span>{{prop name ../largeNames}}</span><br />
-          <strong>{{prop name ../commits}}</strong>
+          {{#with (prop name ../branchesByRemote) }}
+          <span {{#unless backedUp }}class="text-danger"{{/unless }}>
+            <strong class="app--code">[{{ commit }}]</strong>
+            <span>{{ largeName }}</span>
+          </span>
+          {{/with }}
         </td>
-        {{/each}}
+        {{/each }}
       </tr>
       {{/each }}
     </tbody>
   </table>
 </div>
+<script src="/js/buttonRequestAction.js"></script>
 {{/layout}}

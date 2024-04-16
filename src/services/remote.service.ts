@@ -106,8 +106,8 @@ export class RemoteService {
       : null;
 
     remoteData.branchesToCheck =
-      branchesSynched?.filter((b) => !b.backedUp)?.length || null;
-    remoteData.branches = branchesSynched?.length || null;
+      branchesSynched?.filter((b) => !b.backedUp)?.length || 0;
+    remoteData.branches = branchesSynched?.length || 0;
 
     const remoteSynched =
       await this.remoteRepository.upsertByDirectoryAndName(remoteData);

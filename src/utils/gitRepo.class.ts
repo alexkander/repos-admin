@@ -29,7 +29,8 @@ export class GitRepo {
   }
 
   async getBranches() {
-    const remotesNames = (await this.getRemotes()).map(({ name }) => name);
+    const remotes = await this.getRemotes();
+    const remotesNames = remotes.map(({ name }) => name);
     const branchesInfo = await this.handler.branch();
     const branches = Object.values(branchesInfo.branches).map((branch) => {
       const remote = remotesNames.find((remoteName) => {
@@ -52,17 +53,48 @@ export class GitRepo {
 
       return result;
     });
-    branches.forEach((branch) => {
-      if (branch.remote) {
-        const localBranch = branches.find(
-          (lb) => !lb.remote && lb.shortName === branch.shortName,
-        );
-        branch.localSynched = branch.commit === localBranch?.commit;
-      } else {
-        //
+    const promise = branches.map(async (branch) => {
+      branch.backedUp = await this.isRemoteBackedUp(branch, branches);
+      if (!branch.backedUp) {
+        if (branch.remote) {
+          branch.backedUp = await this.isLocalBackedUp(branch, branches);
+        }
       }
     });
+    await Promise.all(promise);
     return branches;
+  }
+
+  async isLocalBackedUp(
+    remoteBranch: GitBranchType,
+    branches: GitBranchType[],
+  ) {
+    const localBranch = branches.find(
+      (lb) => !lb.remote && lb.shortName === remoteBranch.shortName,
+    );
+    if (localBranch?.commit) {
+      return await this.isDescendent(remoteBranch.commit, localBranch.commit);
+    }
+    return true;
+  }
+
+  async isRemoteBackedUp(branch: GitBranchType, branches: GitBranchType[]) {
+    const remoteBranches = branches.filter(
+      (rb) =>
+        rb.remote &&
+        rb.remote !== branch.remote &&
+        rb.shortName === branch.shortName,
+    );
+    for (const remoteBranch of remoteBranches) {
+      const isDescendent = await this.isDescendent(
+        remoteBranch?.commit,
+        branch.commit,
+      );
+      if (isDescendent) {
+        return true;
+      }
+    }
+    return false;
   }
 
   async fetchAllRemotes() {
@@ -83,14 +115,14 @@ export class GitRepo {
   fetchAll(remoteName: string) {
     return this.handler.raw(['fetch', remoteName, '--tags', '-v']);
   }
-  async isDescendent(chilpCommit: string, parentCommit: string) {
-    if (parentCommit === chilpCommit) {
+  async isDescendent(childCommit: string, parentCommit: string) {
+    if (parentCommit === childCommit) {
       return true;
     }
     const ancestor = await this.handler.raw([
       `merge-base`,
       parentCommit,
-      chilpCommit,
+      childCommit,
     ]);
     return ancestor.startsWith(parentCommit);
   }
