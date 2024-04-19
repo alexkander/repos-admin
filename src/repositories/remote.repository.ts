@@ -81,4 +81,14 @@ export class RemoteRepository {
   ) {
     return this.RemoteModel.updateMany(filter, { fetchResult, fetchStatus });
   }
+
+  deleteByRepoExcludingRemotesNames({
+    directory,
+    excludeRemoteNames,
+  }: RepoFilterQuery & { excludeRemoteNames: string[] }) {
+    return this.RemoteModel.deleteMany({
+      directory,
+      name: { $nin: excludeRemoteNames },
+    });
+  }
 }

@@ -88,6 +88,11 @@ export class GitService {
         doFetch,
       );
     });
+    const remotesNames = allRemotes.map(({ name }) => name);
+    await this.remoteRepository.deleteByRepoExcludingRemotesNames({
+      directory,
+      excludeRemoteNames: remotesNames,
+    });
     const result = await Promise.all(upsertPromises);
     this.logger.doLog(`- remotes to sync ${result.length}`);
     return result;
@@ -117,6 +122,12 @@ export class GitService {
         (br) => b.shortName === br.refName && b.remote === br.remoteName,
       );
       b.remoteSynched = branchRemote?.commit.startsWith(b.commit) || false;
+    });
+
+    const branchesNames = gitBranches.map(({ largeName }) => largeName);
+    await this.branchRepository.deleteByRepoExcludingBranchLargeNames({
+      directory,
+      excludeBranchLargeNames: branchesNames,
     });
 
     this.logger.doLog(`- branches to sync ${gitBranches.length}`);

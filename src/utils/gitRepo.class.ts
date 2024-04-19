@@ -34,13 +34,13 @@ export class GitRepo {
     const branchesInfo = await this.handler.branch();
     const branches = Object.values(branchesInfo.branches).map((branch) => {
       const remote = remotesNames.find((remoteName) => {
-        const remotePrefix = `${BranchConstants.remotePrefix}${remoteName}`;
+        const remotePrefix = `${BranchConstants.remotePrefix}${remoteName}/`;
         return branch.name.startsWith(remotePrefix);
       });
-      const remotePrefix = `${BranchConstants.remotePrefix}${remote}`;
+      const remotePrefix = `${BranchConstants.remotePrefix}${remote}/`;
       const largeName = branch.name;
       const shortName = remote
-        ? largeName.substring(remotePrefix.length + 1)
+        ? largeName.substring(remotePrefix.length)
         : largeName;
       const commit = branch.commit;
 
@@ -115,6 +115,7 @@ export class GitRepo {
   fetchAll(remoteName: string) {
     return this.handler.raw(['fetch', remoteName, '--tags', '-v']);
   }
+
   async isDescendent(childCommit: string, parentCommit: string) {
     if (parentCommit === childCommit) {
       return true;
@@ -147,5 +148,9 @@ export class GitRepo {
     const promises = remoteNames.map((r) => this.listRemoteBranches(r));
     const branchesResults = await Promise.all(promises);
     return branchesResults.flatMap((r) => r);
+  }
+
+  checkout(branchName: string, commit: string) {
+    return this.handler.checkoutBranch(branchName, commit);
   }
 }

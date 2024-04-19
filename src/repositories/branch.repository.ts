@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { Branch } from '../schemas/branch.schema';
 import { RepoFilterQuery } from '../types/remotes.type';
 
@@ -9,6 +9,10 @@ export class BranchRepository {
   constructor(
     @InjectModel(Branch.name) private readonly BranchModel: Model<Branch>,
   ) { }
+
+  findById(id: Types.ObjectId) {
+    return this.BranchModel.findById(id).lean();
+  }
 
   findByRepo({ directory }: RepoFilterQuery) {
     return this.BranchModel.find({ directory }).lean();
@@ -26,5 +30,15 @@ export class BranchRepository {
     }
     Object.assign(record, data);
     return (await record.save()).toJSON();
+  }
+
+  deleteByRepoExcludingBranchLargeNames({
+    directory,
+    excludeBranchLargeNames,
+  }: RepoFilterQuery & { excludeBranchLargeNames: string[] }) {
+    return this.BranchModel.deleteMany({
+      directory,
+      largeName: { $nin: excludeBranchLargeNames },
+    });
   }
 }

@@ -1,5 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { FilterQuery, Types } from 'mongoose';
+import { RemoteCheckoutRequestPayload } from 'src/controllers/dtos/remote-checkout-request-body';
+import { BranchRepository } from 'src/repositories/branch.repository';
+import { RepoRepository } from 'src/repositories/repo.repository';
+import { Branch } from 'src/schemas/branch.schema';
 import { RemoteHelper } from '../helpers/remote.helper';
 import { RepoHelper } from '../helpers/repo.helper';
 import { RemoteRepository } from '../repositories/remote.repository';
@@ -13,7 +17,9 @@ import { LoggerService } from './logger.service';
 export class RemoteService {
   constructor(
     private readonly logger: LoggerService,
+    private readonly repoRepository: RepoRepository,
     private readonly remoteRepository: RemoteRepository,
+    private readonly branchRepository: BranchRepository,
     private readonly gitService: GitService,
   ) { }
 
@@ -113,5 +119,30 @@ export class RemoteService {
       await this.remoteRepository.upsertByDirectoryAndName(remoteData);
 
     return { remoteSynched, branchesSynched };
+  }
+
+  async checkout({ branchName, remoteBranchId }: RemoteCheckoutRequestPayload) {
+    const remoteBranch = await this.branchRepository.findById(remoteBranchId);
+    const gitRepo = RepoHelper.getGitRepo(remoteBranch.directory);
+    await gitRepo.checkout(branchName, remoteBranch.commit);
+
+    const newBranch: Branch = {
+      directory: remoteBranch.directory,
+      shortName: branchName,
+      largeName: branchName,
+      commit: remoteBranch.commit,
+      backedUp: remoteBranch.shortName === branchName,
+    };
+
+    await this.branchRepository.upsertByDirectoryAndLargeName(newBranch);
+
+    const repo = await this.repoRepository.findOneByRepo({
+      directory: remoteBranch.directory,
+    });
+    repo.branches += 1;
+    if (!newBranch.backedUp) {
+      repo.branchesToCheck += 1;
+    }
+    await this.repoRepository.upsertByDirectory(repo);
   }
 }

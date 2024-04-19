@@ -21,6 +21,8 @@
         <th>#</th>
         <th>name</th>
         <th>url</th>
+        <th>branches</th>
+        <th>branchesToCheck</th>
       </tr>
     </thead>
     <tbody>
@@ -29,6 +31,8 @@
         <td>{{ addOne @index }}</td>
         <td>{{ name }}</td>
         <td>{{ url }}</td>
+        <td>{{ branches }}</td>
+        <td>{{ branchesToCheck }}</td>
       </tr>
       {{/each }}
     </tbody>
@@ -60,7 +64,9 @@
             <a
               class="app--pointer"
               data-bs-toggle="modal"
-              data-bs-target="#appCheckoutModal"
+              data-bs-target="#appModalCheckout"
+              data-remote-branch-id="{{ id }}"
+              data-branch-name="{{ shortName }}"
             >[checkout]</a>
             </li>
             {{/if }}
@@ -74,30 +80,39 @@
   </table>
 </div>
 
-<div class="modal fade" id="appCheckoutModal" tabindex="-1" aria-labelledby="appCheckoutModalLabel" aria-hidden="true">
+<form action="/remote/checkout" class="modal fade app--formRequestAction" id="appModalCheckout" tabindex="-1" aria-labelledby="appModalCheckoutLabel" aria-hidden="true" method="POST">
   <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
     <div class="modal-content">
       <div class="modal-header">
-        <h1 class="modal-title fs-5" id="appCheckoutModalLabel">Checkout modal</h1>
+        <h1 class="modal-title fs-5" id="appModalCheckoutLabel">Checkout</h1>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        <select class="form-select" aria-label="Select the remote branch">
-          {{#each branchesToCheckout }}
-          <option value="{{id}}" {{#unless canCheckout}}disabled class="text-danger"{{/unless}}>
-            {{ largeName }}
-            {{#unless canCheckout}}(already exists){{/unless}}
-          </option>
-          {{/each}}
-        </select>
+        <div class="mb-1">
+          <label for="remoteBranchIdSelect" class="form-label">Remote branch</label>
+          <select id="remoteBranchIdSelect" class="form-select" aria-label="Select the remote branch" name="remoteBranchId">
+            {{#each branchesToCheckout }}
+            <option value="{{id}}" {{#unless canCheckout}}disabled class="text-danger"{{/unless}}>
+              {{ largeName }}
+              {{#unless canCheckout}}(already exists){{/unless}}
+            </option>
+            {{/each}}
+          </select>
+        </div>
+        <div class="mb-1">
+          <label for="inputBranchName" class="form-label">New branch</label>
+          <input type="text" id="inputBranchName" class="form-control" name="branchName">
+        </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-primary">Save changes</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="submit" class="btn btn-success">Checkout</button>
       </div>
     </div>
   </div>
-</div>
+</form>
 
 <script src="/js/buttonRequestAction.js"></script>
+<script src="/js/formRequestAction.js"></script>
+<script src="/js/modals/checkout.js"></script>
 {{/layout}}
