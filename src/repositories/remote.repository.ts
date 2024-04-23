@@ -53,6 +53,10 @@ export class RemoteRepository {
     return this.RemoteModel.find({ directory }).lean();
   }
 
+  countByRepo({ directory }: RepoFilterQuery) {
+    return this.RemoteModel.countDocuments({ directory });
+  }
+
   findOneInRepoByName({ directory, name }: RemoteFilterQuery) {
     return this.RemoteModel.findOne({ directory, name }).lean();
   }

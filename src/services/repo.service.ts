@@ -108,11 +108,9 @@ export class RepoService {
     const allRemotes = await this.remoteRepository.findByRepo(repo);
     const remotes = [{ name: 'local' }].concat(allRemotes);
     const branchesToCheckout = allBranches.map((branch) => {
-      const canCheckout = this.canCheckoutRemoteBranch(branch, allBranches);
       return {
         ...branch,
         id: branch._id.toString(),
-        canCheckout,
       };
     });
     const branchesMap: Record<
@@ -139,14 +137,5 @@ export class RepoService {
       branchesToCheckout,
       branches,
     };
-  }
-
-  canCheckoutRemoteBranch(branch: Branch, allBranches: Branch[]) {
-    if (!branch.remote) {
-      return false;
-    }
-    return !allBranches.find(
-      (b) => !b.remote && b.shortName === branch.shortName,
-    );
   }
 }

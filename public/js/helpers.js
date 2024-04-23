@@ -35,7 +35,10 @@
           : encodeURIComponent(key);
 
         if (typeof value === 'object') {
-          const subQueryString = AppHelpers.objectToQueryString(value, encodedKey);
+          const subQueryString = AppHelpers.objectToQueryString(
+            value,
+            encodedKey,
+          );
           queryString += subQueryString ? `${sep}${subQueryString}` : '';
         } else {
           queryString += `${sep}${encodedKey}=${encodeURIComponent(value)}`;
@@ -49,7 +52,7 @@
   AppHelpers.showSuccessMessage = (msg) => {
     const query = AppHelpers.queryStringToObject(location.search);
     query.success = msg;
-    delete query.fail;
+    delete query.fails;
     location.search = AppHelpers.objectToQueryString(query);
   };
 

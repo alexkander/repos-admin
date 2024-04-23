@@ -45,7 +45,9 @@
         <th>#</th>
         <th>name</th>
         {{#each remotes }}
-        <th>{{ name }}</th>
+        <th>
+          <span>{{ name }}</span>
+        </th>
         {{/each }}
       </tr>
     </thead>
@@ -53,14 +55,23 @@
       {{#each branches }}
       <tr>
         <td>{{ addOne @index }}</td>
-        <td>{{ name }}</td>
+        <td>
+          <span>{{ name }}</span>
+          {{#with branchesByRemote.local }}
+          <a
+            class="app--pointer"
+            data-bs-toggle="modal"
+            data-bs-target="#appModalPush"
+            data-local-branch-id="{{ id }}"
+          >[push]</a>
+          {{/with }}
+        </td>
         {{#each ../remotes }}
         <td>
           {{#with (prop name ../branchesByRemote) }}
           <span {{#unless backedUp }}class="text-danger"{{/unless }}>
             <strong class="app--code">[{{ commit }}]</strong>
             <span>{{ largeName }}</span>
-            {{#if canCheckout }}
             <a
               class="app--pointer"
               data-bs-toggle="modal"
@@ -69,7 +80,6 @@
               data-branch-name="{{ shortName }}"
             >[checkout]</a>
             </li>
-            {{/if }}
           </span>
           {{/with }}
         </td>
@@ -92,9 +102,9 @@
           <label for="remoteBranchIdSelect" class="form-label">Remote branch</label>
           <select id="remoteBranchIdSelect" class="form-select" aria-label="Select the remote branch" name="remoteBranchId">
             {{#each branchesToCheckout }}
-            <option value="{{id}}" {{#unless canCheckout}}disabled class="text-danger"{{/unless}}>
+            <option value="{{id}}"
+            >
               {{ largeName }}
-              {{#unless canCheckout}}(already exists){{/unless}}
             </option>
             {{/each}}
           </select>
@@ -112,7 +122,45 @@
   </div>
 </form>
 
+<form action="/remote/push" class="modal fade app--formRequestAction" id="appModalPush" tabindex="-1" aria-labelledby="appModalPushLabel" aria-hidden="true" method="POST">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="appModalPushLabel">Push</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-1">
+          <label for="localBranchIdSelect" class="form-label">Local branch</label>
+          <select id="localBranchIdSelect" class="form-select" aria-label="Select the local branch" name="localBranchId">
+            {{#each branches }}
+            {{#with branchesByRemote.local }}
+            <option value="{{id}}">{{ largeName }}</option>
+            {{/with}}
+            {{/each}}
+          </select>
+        </div>
+        <div class="mb-1">
+          <label for="remoteIdSelect" class="form-label">Remote</label>
+          <select id="remoteIdSelect" class="form-select" aria-label="Select the local branch" name="remoteId">
+            {{#each remotes }}
+            {{#if _id }}
+            <option value="{{_id}}">{{ name }}</option>
+            {{/if }}
+            {{/each }}
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="submit" class="btn btn-success">Push</button>
+      </div>
+    </div>
+  </div>
+</form>
+
 <script src="/js/buttonRequestAction.js"></script>
 <script src="/js/formRequestAction.js"></script>
 <script src="/js/modals/checkout.js"></script>
+<script src="/js/modals/push.js"></script>
 {{/layout}}

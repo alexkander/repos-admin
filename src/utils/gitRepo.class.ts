@@ -9,6 +9,10 @@ export class GitRepo {
     this.handler = simpleGit(this.rootDirectory);
   }
 
+  getRemoteBranchName(remoteName: string, branchName: string) {
+    return `${BranchConstants.remotePrefix}${remoteName}/${branchName}`;
+  }
+
   async isRepo() {
     return await this.handler.checkIsRepo();
   }
@@ -34,10 +38,10 @@ export class GitRepo {
     const branchesInfo = await this.handler.branch();
     const branches = Object.values(branchesInfo.branches).map((branch) => {
       const remote = remotesNames.find((remoteName) => {
-        const remotePrefix = `${BranchConstants.remotePrefix}${remoteName}/`;
+        const remotePrefix = this.getRemoteBranchName(remoteName, '');
         return branch.name.startsWith(remotePrefix);
       });
-      const remotePrefix = `${BranchConstants.remotePrefix}${remote}/`;
+      const remotePrefix = this.getRemoteBranchName(remote, '');
       const largeName = branch.name;
       const shortName = remote
         ? largeName.substring(remotePrefix.length)
@@ -152,5 +156,9 @@ export class GitRepo {
 
   checkout(branchName: string, commit: string) {
     return this.handler.checkoutBranch(branchName, commit);
+  }
+
+  push(remoteName: string, branchName: string) {
+    return this.handler.push(remoteName, branchName);
   }
 }

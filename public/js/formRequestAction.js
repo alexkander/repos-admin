@@ -14,9 +14,11 @@
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     };
-    console.log(options, [url]);
     fetch(url, options)
-      .then(() => {
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('Error in request: ' + response.status);
+        }
         AppHelpers.showSuccessMessage('success');
       })
       .catch(() => {

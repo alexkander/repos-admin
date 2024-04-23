@@ -1,6 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { FilterQuery, Types } from 'mongoose';
 import { RemoteCheckoutRequestPayload } from 'src/controllers/dtos/remote-checkout-request-body';
+import { RemotePushRequestPayload } from 'src/controllers/dtos/remote-push-request-body';
 import { BranchRepository } from 'src/repositories/branch.repository';
 import { RepoRepository } from 'src/repositories/repo.repository';
 import { Branch } from 'src/schemas/branch.schema';
@@ -133,16 +134,50 @@ export class RemoteService {
       commit: remoteBranch.commit,
       backedUp: remoteBranch.shortName === branchName,
     };
+    await this.branchRepository.upsertByDirectoryAndLargeName(newBranch);
+    await this.gitService.updateRepoCountsByDirectory({
+      directory: remoteBranch.directory,
+    });
+  }
+
+  async push({ localBranchId, remoteId }: RemotePushRequestPayload) {
+    const localBranch = await this.branchRepository.findById(localBranchId);
+    if (localBranch.remote) {
+      throw new BadRequestException('branch should be a local branch');
+    }
+    const remote = await this.remoteRepository.findById(remoteId);
+    if (localBranch.directory !== remote.directory) {
+      throw new BadRequestException(
+        'remote and branch should to be in the same repository',
+      );
+    }
+    const gitRepo = RepoHelper.getGitRepo(remote.directory);
+    const result = await gitRepo.push(remote.name, localBranch.shortName);
+
+    const newBranch: Branch = {
+      directory: localBranch.directory,
+      shortName: localBranch.shortName,
+      remote: remote.name,
+      commit: localBranch.commit,
+      remoteSynched: true,
+      largeName: gitRepo.getRemoteBranchName(
+        remote.name,
+        localBranch.shortName,
+      ),
+      backedUp: true,
+    };
 
     await this.branchRepository.upsertByDirectoryAndLargeName(newBranch);
 
-    const repo = await this.repoRepository.findOneByRepo({
-      directory: remoteBranch.directory,
+    await this.gitService.updateRepoCountsByDirectory({
+      directory: localBranch.directory,
     });
-    repo.branches += 1;
-    if (!newBranch.backedUp) {
-      repo.branchesToCheck += 1;
-    }
-    await this.repoRepository.upsertByDirectory(repo);
+
+    await this.gitService.updateRemoteCountsByDirectoryAndName({
+      directory: localBranch.directory,
+      name: remote.name,
+    });
+
+    return result;
   }
 }

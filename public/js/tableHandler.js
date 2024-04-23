@@ -25,7 +25,6 @@
     const label = event.target;
     const field = label.dataset.field;
     newQuery.sort = newQuery.sort || {};
-    console.log([event, field, label, label.dataset]);
     if (!newQuery.sort[field]) {
       newQuery.sort[field] = 'asc';
     } else if (newQuery.sort[field] === 'asc') {

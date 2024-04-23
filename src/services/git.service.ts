@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common';
+import { RepoRepository } from 'src/repositories/repo.repository';
 import { RemoteHelper } from '../helpers/remote.helper';
 import { BranchRepository } from '../repositories/branch.repository';
 import { RemoteRepository } from '../repositories/remote.repository';
 import { Remote } from '../schemas/remote.schema';
 import { GitBranchType, GitRemoteType } from '../types/gitRepo.types';
-import { RemoteFilterQuery } from '../types/remotes.type';
+import { RemoteFilterQuery, RepoFilterQuery } from '../types/remotes.type';
 import { GitRepo } from '../utils/gitRepo.class';
 import { LoggerService } from './logger.service';
 
@@ -12,6 +13,7 @@ import { LoggerService } from './logger.service';
 export class GitService {
   constructor(
     private readonly logger: LoggerService,
+    private readonly repoRepository: RepoRepository,
     private readonly remoteRepository: RemoteRepository,
     private readonly branchRepository: BranchRepository,
   ) { }
@@ -137,5 +139,45 @@ export class GitService {
     const result = await Promise.all(upsertPromises);
     this.logger.doLog(`- branches to sync ${result.length}`);
     return result;
+  }
+
+  async updateRepoCountsByDirectory({ directory }: RepoFilterQuery) {
+    const repo = await this.repoRepository.findOneByRepo({
+      directory,
+    });
+    const counts = await this.getRepoCountsByDirectory({ directory });
+    Object.assign(repo, counts);
+    return await this.repoRepository.upsertByDirectory(repo);
+  }
+
+  async getRepoCountsByDirectory({ directory }: RepoFilterQuery) {
+    const [branchesArr, remotes] = await Promise.all([
+      this.branchRepository.findByRepo({ directory }),
+      this.remoteRepository.countByRepo({ directory }),
+    ]);
+    const branches = branchesArr.length;
+    const branchesToCheck = branchesArr.filter((b) => !b.backedUp).length;
+    return {
+      branches,
+      branchesToCheck,
+      remotes,
+    };
+  }
+
+  async updateRemoteCountsByDirectoryAndName(filter: RemoteFilterQuery) {
+    const remote = await this.remoteRepository.findOneInRepoByName(filter);
+    const counts = await this.getRemoteCountsByDirectoryAndName(filter);
+    Object.assign(remote, counts);
+    return await this.remoteRepository.upsertByDirectoryAndName(remote);
+  }
+
+  async getRemoteCountsByDirectoryAndName(filter: RemoteFilterQuery) {
+    const branchesArr = await this.branchRepository.findByRemote(filter);
+    const branches = branchesArr.length;
+    const branchesToCheck = branchesArr.filter((b) => !b.backedUp).length;
+    return {
+      branches,
+      branchesToCheck,
+    };
   }
 }

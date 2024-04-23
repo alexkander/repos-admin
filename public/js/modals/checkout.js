@@ -3,11 +3,13 @@
     const remoteBranchId = evt.relatedTarget.dataset.remoteBranchId;
     const branchName = evt.relatedTarget.dataset.branchName;
 
-    const select = evt.target.querySelector('[name=remoteBranchId]');
-    const input = evt.target.querySelector('[name=branchName]');
+    const inputRemoteBranchId = evt.target.querySelector(
+      '[name=remoteBranchId]',
+    );
+    const inputBranchName = evt.target.querySelector('[name=branchName]');
 
-    select.value = remoteBranchId;
-    input.value = branchName;
+    inputRemoteBranchId.value = remoteBranchId;
+    inputBranchName.value = branchName;
   };
 
   document
