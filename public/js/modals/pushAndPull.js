@@ -16,7 +16,7 @@
     inputRemoteId.value = '';
   };
 
-  document
-    .getElementById('appModalPush')
-    .addEventListener('show.bs.modal', onModalShow);
+  document.querySelectorAll('.app--modalPushAndPull').forEach((element) => {
+    element.addEventListener('show.bs.modal', onModalShow);
+  });
 })();

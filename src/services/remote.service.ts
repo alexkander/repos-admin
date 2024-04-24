@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { FilterQuery, Types } from 'mongoose';
 import { RemoteCheckoutRequestPayload } from 'src/controllers/dtos/remote-checkout-request-body';
+import { RemotePullRequestPayload } from 'src/controllers/dtos/remote-pull-request-body';
 import { RemotePushRequestPayload } from 'src/controllers/dtos/remote-push-request-body';
 import { BranchRepository } from 'src/repositories/branch.repository';
 import { RepoRepository } from 'src/repositories/repo.repository';
@@ -168,6 +169,46 @@ export class RemoteService {
     };
 
     await this.branchRepository.upsertByDirectoryAndLargeName(newBranch);
+
+    await this.gitService.updateRepoCountsByDirectory({
+      directory: localBranch.directory,
+    });
+
+    await this.gitService.updateRemoteCountsByDirectoryAndName({
+      directory: localBranch.directory,
+      name: remote.name,
+    });
+
+    return result;
+  }
+
+  async pull({ localBranchId, remoteId }: RemotePullRequestPayload) {
+    const localBranch = await this.branchRepository.findById(localBranchId);
+    if (localBranch.remote) {
+      throw new BadRequestException('branch should be a local branch');
+    }
+    const remote = await this.remoteRepository.findById(remoteId);
+    if (localBranch.directory !== remote.directory) {
+      throw new BadRequestException(
+        'remote and branch should to be in the same repository',
+      );
+    }
+    const gitRepo = RepoHelper.getGitRepo(remote.directory);
+    await gitRepo.checkout(localBranch.shortName);
+    const result = await gitRepo.pull(remote.name, localBranch.shortName);
+    await gitRepo.checkout('-');
+
+    const branches = await gitRepo.getBranches();
+    const branch = branches.find(
+      (b) => !b.remote && b.shortName === localBranch.shortName,
+    );
+
+    const updateBranch: Branch = {
+      ...localBranch,
+      ...branch,
+    };
+
+    await this.branchRepository.upsertByDirectoryAndLargeName(updateBranch);
 
     await this.gitService.updateRepoCountsByDirectory({
       directory: localBranch.directory,

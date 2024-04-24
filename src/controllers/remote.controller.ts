@@ -16,6 +16,7 @@ import { RemoteGroupType } from '../types/remotes.type';
 import { TableQueryParams } from '../types/utils.types';
 import { remoteSearchValidation } from '../validations/remote.search.validator';
 import { RemoteCheckoutRequestPayload } from './dtos/remote-checkout-request-body';
+import { RemotePullRequestPayload } from './dtos/remote-pull-request-body';
 import { RemotePushRequestPayload } from './dtos/remote-push-request-body';
 
 const fields = [
@@ -68,6 +69,11 @@ export class RemoteController {
   @Post('/push')
   push(@Body() body: RemotePushRequestPayload) {
     return this.remoteService.push(body);
+  }
+
+  @Post('/pull')
+  pull(@Body() body: RemotePullRequestPayload) {
+    return this.remoteService.pull(body);
   }
 
   @Post('/:id/sync')

@@ -3,6 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Branch } from '../schemas/branch.schema';
 import { RemoteFilterQuery, RepoFilterQuery } from '../types/remotes.type';
+import { BranchFilterQuery } from 'src/types/branch.type';
 
 @Injectable()
 export class BranchRepository {
@@ -20,6 +21,10 @@ export class BranchRepository {
 
   findByRemote({ directory, name: remote }: RemoteFilterQuery) {
     return this.BranchModel.find({ directory, remote }).lean();
+  }
+
+  findByRemoteShortName({ directory, remote, shortName }: BranchFilterQuery) {
+    return this.BranchModel.findOne({ directory, remote, shortName }).lean();
   }
 
   async create(data: Branch) {

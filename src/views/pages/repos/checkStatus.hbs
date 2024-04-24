@@ -64,6 +64,12 @@
             data-bs-target="#appModalPush"
             data-local-branch-id="{{ id }}"
           >[push]</a>
+          <a
+            class="app--pointer"
+            data-bs-toggle="modal"
+            data-bs-target="#appModalPull"
+            data-local-branch-id="{{ id }}"
+          >[pull]</a>
           {{/with }}
         </td>
         {{#each ../remotes }}
@@ -90,7 +96,7 @@
   </table>
 </div>
 
-<form action="/remote/checkout" class="modal fade app--formRequestAction" id="appModalCheckout" tabindex="-1" aria-labelledby="appModalCheckoutLabel" aria-hidden="true" method="POST">
+<form action="/remote/checkout" class="modal fade app--formRequestAction app--modalPushAndPull" id="appModalCheckout" tabindex="-1" aria-labelledby="appModalCheckoutLabel" aria-hidden="true" method="POST">
   <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
     <div class="modal-content">
       <div class="modal-header">
@@ -122,7 +128,7 @@
   </div>
 </form>
 
-<form action="/remote/push" class="modal fade app--formRequestAction" id="appModalPush" tabindex="-1" aria-labelledby="appModalPushLabel" aria-hidden="true" method="POST">
+<form action="/remote/push" class="modal fade app--formRequestAction app--modalPushAndPull" id="appModalPush" tabindex="-1" aria-labelledby="appModalPushLabel" aria-hidden="true" method="POST">
   <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
     <div class="modal-content">
       <div class="modal-header">
@@ -131,21 +137,21 @@
       </div>
       <div class="modal-body">
         <div class="mb-1">
-          <label for="localBranchIdSelect" class="form-label">Local branch</label>
-          <select id="localBranchIdSelect" class="form-select" aria-label="Select the local branch" name="localBranchId">
+          <label class="form-label">Local branch from</label>
+          <select class="form-select" aria-label="Select local branch from" name="localBranchId">
             {{#each branches }}
             {{#with branchesByRemote.local }}
-            <option value="{{id}}">{{ largeName }}</option>
+            <option value="{{ id }}">{{ largeName }}</option>
             {{/with}}
             {{/each}}
           </select>
         </div>
         <div class="mb-1">
-          <label for="remoteIdSelect" class="form-label">Remote</label>
-          <select id="remoteIdSelect" class="form-select" aria-label="Select the local branch" name="remoteId">
+          <label class="form-label">Remote to</label>
+          <select class="form-select" aria-label="Select remote to" name="remoteId">
             {{#each remotes }}
             {{#if _id }}
-            <option value="{{_id}}">{{ name }}</option>
+            <option value="{{ _id }}">{{ name }}</option>
             {{/if }}
             {{/each }}
           </select>
@@ -159,8 +165,45 @@
   </div>
 </form>
 
+<form action="/remote/pull" class="modal fade app--formRequestAction app--modalPushAndPull" id="appModalPull" tabindex="-1" aria-labelledby="appModalPullLabel" aria-hidden="true" method="POST">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="appModalPullLabel">Pull</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-1">
+          <label class="form-label">Remote from</label>
+          <select class="form-select" aria-label="Select remote from" name="remoteId">
+            {{#each remotes }}
+            {{#if _id }}
+            <option value="{{ _id }}">{{ name }}</option>
+            {{/if }}
+            {{/each }}
+          </select>
+        </div>
+        <div class="mb-1">
+          <label class="form-label">Local branch to</label>
+          <select class="form-select" aria-label="Select local branch to" name="localBranchId">
+            {{#each branches }}
+            {{#with branchesByRemote.local }}
+            <option value="{{ id }}">{{ largeName }}</option>
+            {{/with}}
+            {{/each}}
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="submit" class="btn btn-success">Pull</button>
+      </div>
+    </div>
+  </div>
+</form>
+
 <script src="/js/buttonRequestAction.js"></script>
 <script src="/js/formRequestAction.js"></script>
 <script src="/js/modals/checkout.js"></script>
-<script src="/js/modals/push.js"></script>
+<script src="/js/modals/pushAndPull.js"></script>
 {{/layout}}

@@ -58,15 +58,20 @@ export class GitRepo {
       return result;
     });
     const promise = branches.map(async (branch) => {
-      branch.backedUp = await this.isRemoteBackedUp(branch, branches);
-      if (!branch.backedUp) {
-        if (branch.remote) {
-          branch.backedUp = await this.isLocalBackedUp(branch, branches);
-        }
-      }
+      branch.backedUp = await this.isBackedUp(branch, branches);
     });
     await Promise.all(promise);
     return branches;
+  }
+
+  async isBackedUp(branch: GitBranchType, branches: GitBranchType[]) {
+    const backedUp = await this.isRemoteBackedUp(branch, branches);
+    if (!backedUp) {
+      if (branch.remote) {
+        return await this.isLocalBackedUp(branch, branches);
+      }
+    }
+    return backedUp;
   }
 
   async isLocalBackedUp(
@@ -154,11 +159,18 @@ export class GitRepo {
     return branchesResults.flatMap((r) => r);
   }
 
-  checkout(branchName: string, commit: string) {
-    return this.handler.checkoutBranch(branchName, commit);
+  checkout(branchName: string, commit?: string) {
+    if (commit) {
+      return this.handler.checkoutBranch(branchName, commit);
+    }
+    return this.handler.checkout(branchName);
   }
 
   push(remoteName: string, branchName: string) {
     return this.handler.push(remoteName, branchName);
+  }
+
+  pull(remoteName: string, branchName: string) {
+    return this.handler.pull(remoteName, branchName);
   }
 }
