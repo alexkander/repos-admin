@@ -72,21 +72,22 @@
               data-branch-large-name="{{ largeName }}"
               data-branch-short-name="{{ shortName }}"
             >[checkout]</a>
-            {{!-- {{#if (eeq ../name 'local') }}
+            {{#if (eeq ../name 'local') }}
             <a
               class="app--pointer"
               data-bs-toggle="modal"
               data-bs-target="#appModalPush"
-              data-local-branch-id="{{ id }}"
+              data-directory="{{ directory }}"
+              data-branch-large-name="{{ largeName }}"
             >[push]</a>
-            {{else}}
             <a
               class="app--pointer"
               data-bs-toggle="modal"
               data-bs-target="#appModalPull"
-              data-local-branch-id="{{ id }}"
+              data-directory="{{ directory }}"
+              data-branch-large-name="{{ largeName }}"
             >[pull]</a>
-            {{/if }} --}}
+            {{/if }}
           </span>
           {{/with }}
         </td>
@@ -97,7 +98,7 @@
   </table>
 </div>
 
-<form action="/remote/checkout" class="modal fade app--formRequestAction" id="appModalCheckout" tabindex="-1" aria-labelledby="appModalCheckoutLabel" aria-hidden="true" method="POST">
+<form action="/remote/checkout" class="modal fade app--formRequestAction app--modalCheckout" id="appModalCheckout" tabindex="-1" aria-labelledby="appModalCheckoutLabel" aria-hidden="true" method="POST">
   <input type="hidden" class="form-control" name="directory">
   <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
     <div class="modal-content">
@@ -107,8 +108,8 @@
       </div>
       <div class="modal-body">
         <div class="mb-1">
-          <label for="select_branchLargeName" class="form-label">Branch to checkout</label>
-          <select id="select_branchLargeName" class="form-select" aria-label="Select the branch" name="branchLargeName">
+          <label class="form-label">Branch to checkout</label>
+          <select class="form-select" aria-label="Select the branch" name="branchLargeName">
             {{#each branchesToCheckout }}
             <option value="{{largeName}}"
             >
@@ -118,8 +119,8 @@
           </select>
         </div>
         <div class="mb-1">
-          <label for="input_newBranchName" class="form-label">New branch name</label>
-          <input type="text" id="input_newBranchName" class="form-control" name="newBranchName">
+          <label class="form-label">New branch name</label>
+          <input type="text" class="form-control" name="newBranchName">
         </div>
       </div>
       <div class="modal-footer">
@@ -131,6 +132,7 @@
 </form>
 
 <form action="/remote/push" class="modal fade app--formRequestAction app--modalPushAndPull" id="appModalPush" tabindex="-1" aria-labelledby="appModalPushLabel" aria-hidden="true" method="POST">
+  <input type="hidden" class="form-control" name="directory">
   <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
     <div class="modal-content">
       <div class="modal-header">
@@ -139,21 +141,21 @@
       </div>
       <div class="modal-body">
         <div class="mb-1">
-          <label class="form-label">Local branch from</label>
-          <select class="form-select" aria-label="Select local branch from" name="localBranchId">
+          <label class="form-label">Branch to push</label>
+          <select class="form-select" aria-label="Select branch to push" name="branchLargeName">
             {{#each branches }}
             {{#with branchesByRemote.local }}
-            <option value="{{ id }}">{{ largeName }}</option>
+            <option value="{{ largeName }}">{{ largeName }}</option>
             {{/with}}
             {{/each}}
           </select>
         </div>
         <div class="mb-1">
-          <label class="form-label">Remote to</label>
-          <select class="form-select" aria-label="Select remote to" name="remoteId">
+          <label class="form-label">Remote</label>
+          <select class="form-select" aria-label="Select remote to" name="remoteName">
             {{#each remotes }}
             {{#if _id }}
-            <option value="{{ _id }}">{{ name }}</option>
+            <option value="{{ name }}">{{ name }}</option>
             {{/if }}
             {{/each }}
           </select>
@@ -168,6 +170,7 @@
 </form>
 
 <form action="/remote/pull" class="modal fade app--formRequestAction app--modalPushAndPull" id="appModalPull" tabindex="-1" aria-labelledby="appModalPullLabel" aria-hidden="true" method="POST">
+  <input type="hidden" class="form-control" name="directory">
   <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
     <div class="modal-content">
       <div class="modal-header">
@@ -176,23 +179,23 @@
       </div>
       <div class="modal-body">
         <div class="mb-1">
-          <label class="form-label">Remote from</label>
-          <select class="form-select" aria-label="Select remote from" name="remoteId">
-            {{#each remotes }}
-            {{#if _id }}
-            <option value="{{ _id }}">{{ name }}</option>
-            {{/if }}
-            {{/each }}
+          <label class="form-label">Branch to pull</label>
+          <select class="form-select" aria-label="Select local branch to" name="branchLargeName">
+            {{#each branches }}
+            {{#with branchesByRemote.local }}
+            <option value="{{ largeName }}">{{ largeName }}</option>
+            {{/with}}
+            {{/each}}
           </select>
         </div>
         <div class="mb-1">
-          <label class="form-label">Local branch to</label>
-          <select class="form-select" aria-label="Select local branch to" name="localBranchId">
-            {{#each branches }}
-            {{#with branchesByRemote.local }}
-            <option value="{{ id }}">{{ largeName }}</option>
-            {{/with}}
-            {{/each}}
+          <label class="form-label">Remote</label>
+          <select class="form-select" aria-label="Select remote from" name="remoteName">
+            {{#each remotes }}
+            {{#if _id }}
+            <option value="{{ name }}">{{ name }}</option>
+            {{/if }}
+            {{/each }}
           </select>
         </div>
       </div>

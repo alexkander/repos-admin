@@ -3,9 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Branch } from '../schemas/branch.schema';
 import { RemoteFilterQuery, RepoFilterQuery } from '../types/remotes.type';
-import {
-  BranchFilterByLargeNameQuery,
-} from 'src/types/branch.type';
+import { BranchFilterByLargeNameQuery } from 'src/types/branch.type';
 
 @Injectable()
 export class BranchRepository {
@@ -25,7 +23,7 @@ export class BranchRepository {
     return this.BranchModel.find({ directory, remote }).lean();
   }
 
-  findByRemoteLargeName({
+  findByRepoAndLargeName({
     directory,
     largeName,
   }: BranchFilterByLargeNameQuery) {

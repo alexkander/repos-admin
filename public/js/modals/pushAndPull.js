@@ -1,19 +1,11 @@
 (() => {
   const onModalShow = (evt) => {
-    const localBranchId = evt.relatedTarget.dataset.localBranchId;
+    const repoDirectory = evt.relatedTarget.dataset.directory;
+    const branchLargeName = evt.relatedTarget.dataset.branchLargeName;
 
-    const inputLocalBranchId = evt.target.querySelector('[name=localBranchId]');
-    const inputRemoteId = evt.target.querySelector('[name=remoteId]');
-
-    console.log([
-      inputLocalBranchId,
-      inputLocalBranchId.value,
-      inputRemoteId,
-      localBranchId,
-    ]);
-
-    inputLocalBranchId.value = localBranchId;
-    inputRemoteId.value = '';
+    evt.target.querySelector('[name=directory]').value = repoDirectory;
+    evt.target.querySelector('[name=branchLargeName]').value = branchLargeName;
+    evt.target.querySelector('[name=remoteName]').value = '';
   };
 
   document.querySelectorAll('.app--modalPushAndPull').forEach((element) => {

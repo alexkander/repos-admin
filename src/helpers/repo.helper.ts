@@ -5,16 +5,18 @@ import { RepoConstants } from '../constants/repo.constants';
 import { Repo } from '../schemas/repo.schema';
 import { GitRepo } from '../utils/gitRepo.class';
 import { routes } from '../utils/routes';
+import { BadGatewayException } from '@nestjs/common';
 
 export class RepoHelper {
   public static readonly baseDirectory = routes.resolve(
     configuration.REPOSITORIES_DIRECTORY,
   );
 
-  constructor() { }
-
   static getGitRepo(directory: string) {
     const gitDirectory = routes.resolve(this.baseDirectory, directory);
+    if (!gitDirectory.startsWith(this.baseDirectory)) {
+      throw new BadGatewayException('repository not found');
+    }
     return new GitRepo(gitDirectory);
   }
 

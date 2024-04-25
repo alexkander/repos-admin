@@ -1,12 +1,15 @@
 import { IsNotEmpty, IsString } from 'class-validator';
-import { Types } from 'mongoose';
 
 export class RemotePushRequestPayload {
   @IsString()
   @IsNotEmpty()
-  readonly localBranchId: Types.ObjectId;
+  readonly directory: string;
 
   @IsString()
   @IsNotEmpty()
-  readonly remoteId: Types.ObjectId;
+  readonly branchLargeName: string;
+
+  @IsString()
+  @IsNotEmpty()
+  readonly remoteName: string;
 }
