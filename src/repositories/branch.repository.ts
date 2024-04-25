@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
+import { BranchFilterByLargeNameQuery } from 'src/types/branch.type';
 import { Branch } from '../schemas/branch.schema';
 import { RemoteFilterQuery, RepoFilterQuery } from '../types/remotes.type';
-import { BranchFilterByLargeNameQuery } from 'src/types/branch.type';
 
 @Injectable()
 export class BranchRepository {
@@ -28,6 +28,10 @@ export class BranchRepository {
     largeName,
   }: BranchFilterByLargeNameQuery) {
     return this.BranchModel.findOne({ directory, largeName }).lean();
+  }
+
+  deleteById(id: Types.ObjectId) {
+    return this.BranchModel.deleteOne({ _id: id }).lean();
   }
 
   async create(data: Branch) {

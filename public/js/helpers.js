@@ -63,5 +63,14 @@
     location.search = AppHelpers.objectToQueryString(query);
   };
 
+  AppHelpers.prepareLabels = (parentElement) => {
+    parentElement.querySelectorAll('[data-app-label]').forEach((element) => {
+      const prop = element.dataset.appLabel;
+      const input = parentElement.querySelector(`[name=${prop}]`);
+      const text = input?.value || '';
+      element.innerHTML = text;
+    });
+  };
+
   window.AppHelpers = AppHelpers;
 })();

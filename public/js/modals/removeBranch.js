@@ -5,10 +5,11 @@
 
     evt.target.querySelector('[name=directory]').value = repoDirectory;
     evt.target.querySelector('[name=branchLargeName]').value = branchLargeName;
-    evt.target.querySelector('[name=remoteName]').value = '';
+
+    AppHelpers.prepareLabels(evt.target);
   };
 
-  document.querySelectorAll('.app--modalPushAndPull').forEach((element) => {
+  document.querySelectorAll('.app--modalBranchRemove').forEach((element) => {
     element.addEventListener('show.bs.modal', onModalShow);
   });
 })();

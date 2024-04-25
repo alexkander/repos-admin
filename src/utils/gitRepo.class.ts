@@ -173,4 +173,8 @@ export class GitRepo {
   pull(remoteName: string, branchName: string) {
     return this.handler.pull(remoteName, branchName);
   }
+
+  deleteLocalBranch(branchName: string) {
+    return this.handler.deleteLocalBranch(branchName);
+  }
 }

@@ -2,6 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { CheckoutRequestPayload } from 'src/controllers/dtos/checkout-request-body';
 import { PullRequestPayload } from 'src/controllers/dtos/pull-request-body';
 import { PushRequestPayload } from 'src/controllers/dtos/push-request-body';
+import { RemoveBranchRequestPayload } from 'src/controllers/dtos/remove-branch-request-body';
 import { BranchRepository } from 'src/repositories/branch.repository';
 import { Branch } from 'src/schemas/branch.schema';
 import { RepoHelper } from '../helpers/repo.helper';
@@ -24,7 +25,11 @@ export class BranchService {
     );
 
     const gitRepo = RepoHelper.getGitRepo(branchToCheckout.directory);
-    await gitRepo.checkout(newBranchName, branchToCheckout.commit);
+    if (branchToCheckout.largeName === newBranchName) {
+      await gitRepo.checkout(newBranchName);
+    } else {
+      await gitRepo.checkout(newBranchName, branchToCheckout.commit);
+    }
 
     const newBranch: Branch = {
       directory: branchToCheckout.directory,
@@ -39,11 +44,7 @@ export class BranchService {
     });
   }
 
-  async push({
-    directory,
-    remoteName,
-    branchLargeName,
-  }: PushRequestPayload) {
+  async push({ directory, remoteName, branchLargeName }: PushRequestPayload) {
     const branchToPush = await this.branchRepository.findByRepoAndLargeName({
       directory,
       largeName: branchLargeName,
@@ -81,11 +82,7 @@ export class BranchService {
     return result;
   }
 
-  async pull({
-    directory,
-    remoteName,
-    branchLargeName,
-  }: PullRequestPayload) {
+  async pull({ directory, remoteName, branchLargeName }: PullRequestPayload) {
     const branchToPull = await this.branchRepository.findByRepoAndLargeName({
       directory,
       largeName: branchLargeName,
@@ -117,6 +114,27 @@ export class BranchService {
     await this.gitService.updateRemoteCountsByDirectoryAndName({
       directory: branchToPull.directory,
       name: remoteName,
+    });
+
+    return result;
+  }
+
+  async remove({ directory, branchLargeName }: RemoveBranchRequestPayload) {
+    const branchToRemove = await this.branchRepository.findByRepoAndLargeName({
+      directory,
+      largeName: branchLargeName,
+    });
+    if (branchToRemove.remote) {
+      throw new BadRequestException('branch should be a local branch');
+    }
+
+    const gitRepo = RepoHelper.getGitRepo(branchToRemove.directory);
+    const result = await gitRepo.deleteLocalBranch(branchToRemove.shortName);
+
+    await this.branchRepository.deleteById(branchToRemove._id);
+
+    await this.gitService.updateRepoCountsByDirectory({
+      directory: branchToRemove.directory,
     });
 
     return result;

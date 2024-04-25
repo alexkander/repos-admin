@@ -1,4 +1,11 @@
-- compare repos
-- Search oldest commit in a repo
-- local branches not pushed
-- Improvement way to show messages
+- [ ] compare repos
+- [ ] Search oldest commit in a repo
+- [ ] Indicates the current branch
+- [ ] Improvement way to show messages
+- [ ] add remote
+- [ ] remove remote
+- [ ] add actions to remotes in checkStatus view
+- [ ] sync tags in repo
+- [ ] list current changes in repo
+- [ ] list stashes in repo
+- [ ] save all the info export
