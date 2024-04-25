@@ -98,7 +98,7 @@
   </table>
 </div>
 
-<form action="/remote/checkout" class="modal fade app--formRequestAction app--modalCheckout" id="appModalCheckout" tabindex="-1" aria-labelledby="appModalCheckoutLabel" aria-hidden="true" method="POST">
+<form action="/branch/checkout" class="modal fade app--formRequestAction app--modalCheckout" id="appModalCheckout" tabindex="-1" aria-labelledby="appModalCheckoutLabel" aria-hidden="true" method="PATCH">
   <input type="hidden" class="form-control" name="directory">
   <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
     <div class="modal-content">
@@ -131,7 +131,7 @@
   </div>
 </form>
 
-<form action="/remote/push" class="modal fade app--formRequestAction app--modalPushAndPull" id="appModalPush" tabindex="-1" aria-labelledby="appModalPushLabel" aria-hidden="true" method="POST">
+<form action="/branch/push" class="modal fade app--formRequestAction app--modalPushAndPull" id="appModalPush" tabindex="-1" aria-labelledby="appModalPushLabel" aria-hidden="true" method="PATCH">
   <input type="hidden" class="form-control" name="directory">
   <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
     <div class="modal-content">
@@ -169,7 +169,7 @@
   </div>
 </form>
 
-<form action="/remote/pull" class="modal fade app--formRequestAction app--modalPushAndPull" id="appModalPull" tabindex="-1" aria-labelledby="appModalPullLabel" aria-hidden="true" method="POST">
+<form action="/branch/pull" class="modal fade app--formRequestAction app--modalPushAndPull" id="appModalPull" tabindex="-1" aria-labelledby="appModalPullLabel" aria-hidden="true" method="PATCH">
   <input type="hidden" class="form-control" name="directory">
   <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
     <div class="modal-content">

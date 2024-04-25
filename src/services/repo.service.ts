@@ -1,10 +1,8 @@
-import { BadGatewayException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { FilterQuery, Types } from 'mongoose';
-import { BranchRepository } from 'src/repositories/branch.repository';
 import { Branch } from 'src/schemas/branch.schema';
 import { SyncRepoOptions } from 'src/types/repos.types';
 import { RepoHelper } from '../helpers/repo.helper';
-import { RemoteRepository } from '../repositories/remote.repository';
 import { RepoRepository } from '../repositories/repo.repository';
 import { Repo } from '../schemas/repo.schema';
 import { SortQueryData } from '../types/utils.types';
@@ -16,8 +14,6 @@ export class RepoService {
   constructor(
     private readonly logger: LoggerService,
     private readonly repoRepository: RepoRepository,
-    private readonly remoteRepository: RemoteRepository,
-    private readonly branchesRepository: BranchRepository,
     private readonly gitService: GitService,
   ) { }
 
@@ -84,28 +80,20 @@ export class RepoService {
   async fetchRepoRemotesById(id: Types.ObjectId) {
     const repo = await this.repoRepository.findById(id);
     const { directory } = repo;
-    const gitRepo = RepoHelper.getGitRepo(directory);
-    const valid = await gitRepo.isRepo();
-    if (!valid) {
-      throw new BadGatewayException(`invalid repo ${id}`);
-    }
-    const remotes = await this.remoteRepository.findByRepo({ directory });
 
-    this.logger.doLog(`- remotes to fetch ${remotes.length} in ${directory}`);
-    const fetchPromises = remotes.map((remote) => {
-      return this.gitService.fetchRepoRemote(gitRepo, remote);
+    const results = await this.gitService.fetchAllRepoRemotes({
+      directory,
     });
-    const fetchResults = await Promise.all(fetchPromises);
 
-    const failed = fetchResults.filter((i) => i.fetchStatus === 'error').length;
+    const failed = results.filter((i) => i.fetchStatus === 'error').length;
     this.logger.doLog(`- remotes fetched. fails ${failed}`);
-    return fetchResults;
+    return results;
   }
 
   async checkStatusById(id: Types.ObjectId) {
     const repo = await this.repoRepository.findById(id);
-    const allBranches = await this.branchesRepository.findByRepo(repo);
-    const allRemotes = await this.remoteRepository.findByRepo(repo);
+    const { allBranches, allRemotes } =
+      await this.gitService.getRepoBranchesAndRemotes(repo);
     const remotes = [{ name: 'local' }].concat(allRemotes);
     const branchesToCheckout = allBranches.map((branch) => {
       return {

@@ -1,4 +1,5 @@
-import { Injectable } from '@nestjs/common';
+import { BadGatewayException, Injectable } from '@nestjs/common';
+import { RepoHelper } from 'src/helpers/repo.helper';
 import { RepoRepository } from 'src/repositories/repo.repository';
 import { RemoteHelper } from '../helpers/remote.helper';
 import { BranchRepository } from '../repositories/branch.repository';
@@ -17,6 +18,33 @@ export class GitService {
     private readonly remoteRepository: RemoteRepository,
     private readonly branchRepository: BranchRepository,
   ) { }
+
+  async getRepoBranchesAndRemotes({ directory }: RepoFilterQuery) {
+    const [allBranches, allRemotes] = await Promise.all([
+      this.branchRepository.findByRepo({ directory }),
+      this.remoteRepository.findByRepo({ directory }),
+    ]);
+    return { allBranches, allRemotes };
+  }
+
+  async fetchAllRepoRemotes({ directory }: RepoFilterQuery) {
+    const remotes = await this.remoteRepository.findByRepo({ directory });
+
+    const gitRepo = RepoHelper.getGitRepo(directory);
+    const valid = await gitRepo.isRepo();
+    if (!valid) {
+      throw new BadGatewayException(`invalid repo ${directory}`);
+    }
+
+    this.logger.doLog(`- remotes to fetch ${remotes.length} in ${directory}`);
+    const fetchPromises = remotes.map((remote) => {
+      return this.fetchRepoRemote(gitRepo, remote);
+    });
+
+    const fetchResults = await Promise.all(fetchPromises);
+
+    return fetchResults;
+  }
 
   async fetchRepoRemote(gitRepo: GitRepo, remote: Remote) {
     this.logger.doLog(`  fetch remote: ${remote.name}: ${remote.url}`);

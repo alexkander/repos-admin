@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { configuration } from './configuration/configuration';
+import { BranchController } from './controllers/branch.controller';
 import { RemoteController } from './controllers/remote.controller';
 import { RepoController } from './controllers/repo.controller';
 import { BranchRepository } from './repositories/branch.repository';
@@ -9,6 +10,7 @@ import { RepoRepository } from './repositories/repo.repository';
 import { Branch, BranchSchema } from './schemas/branch.schema';
 import { Remote, RemoteSchema } from './schemas/remote.schema';
 import { Repo, RepoSchema } from './schemas/repo.schema';
+import { BranchService } from './services/branch.service';
 import { GitService } from './services/git.service';
 import { LoggerService } from './services/logger.service';
 import { RemoteService } from './services/remote.service';
@@ -24,7 +26,7 @@ import { SearchService } from './services/search.service';
       { name: Branch.name, schema: BranchSchema },
     ]),
   ],
-  controllers: [RepoController, RemoteController],
+  controllers: [RepoController, RemoteController, BranchController],
   providers: [
     LoggerService,
     SearchService,
@@ -33,6 +35,7 @@ import { SearchService } from './services/search.service';
     RemoteRepository,
     RemoteService,
     BranchRepository,
+    BranchService,
     GitService,
   ],
 })

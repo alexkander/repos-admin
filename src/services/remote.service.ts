@@ -1,11 +1,5 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { FilterQuery, Types } from 'mongoose';
-import { RemoteCheckoutRequestPayload } from 'src/controllers/dtos/remote-checkout-request-body';
-import { RemotePullRequestPayload } from 'src/controllers/dtos/remote-pull-request-body';
-import { RemotePushRequestPayload } from 'src/controllers/dtos/remote-push-request-body';
-import { BranchRepository } from 'src/repositories/branch.repository';
-import { RepoRepository } from 'src/repositories/repo.repository';
-import { Branch } from 'src/schemas/branch.schema';
 import { RemoteHelper } from '../helpers/remote.helper';
 import { RepoHelper } from '../helpers/repo.helper';
 import { RemoteRepository } from '../repositories/remote.repository';
@@ -19,9 +13,7 @@ import { LoggerService } from './logger.service';
 export class RemoteService {
   constructor(
     private readonly logger: LoggerService,
-    private readonly repoRepository: RepoRepository,
     private readonly remoteRepository: RemoteRepository,
-    private readonly branchRepository: BranchRepository,
     private readonly gitService: GitService,
   ) { }
 
@@ -121,113 +113,5 @@ export class RemoteService {
       await this.remoteRepository.upsertByDirectoryAndName(remoteData);
 
     return { remoteSynched, branchesSynched };
-  }
-
-  async checkout({
-    directory,
-    branchLargeName,
-    newBranchName,
-  }: RemoteCheckoutRequestPayload) {
-    const branchToCheckout = await this.branchRepository.findByRepoAndLargeName(
-      { directory, largeName: branchLargeName },
-    );
-
-    const gitRepo = RepoHelper.getGitRepo(branchToCheckout.directory);
-    await gitRepo.checkout(newBranchName, branchToCheckout.commit);
-
-    const newBranch: Branch = {
-      directory: branchToCheckout.directory,
-      shortName: newBranchName,
-      largeName: newBranchName,
-      commit: branchToCheckout.commit,
-      backedUp: branchToCheckout.shortName === newBranchName,
-    };
-    await this.branchRepository.upsertByDirectoryAndLargeName(newBranch);
-    await this.gitService.updateRepoCountsByDirectory({
-      directory: branchToCheckout.directory,
-    });
-  }
-
-  async push({
-    directory,
-    remoteName,
-    branchLargeName,
-  }: RemotePushRequestPayload) {
-    const branchToPush = await this.branchRepository.findByRepoAndLargeName({
-      directory,
-      largeName: branchLargeName,
-    });
-    if (branchToPush.remote) {
-      throw new BadRequestException('branch should be a local branch');
-    }
-    const gitRepo = RepoHelper.getGitRepo(branchToPush.directory);
-    const result = await gitRepo.push(remoteName, branchToPush.shortName);
-
-    const newBranch: Branch = {
-      directory: branchToPush.directory,
-      shortName: branchToPush.shortName,
-      remote: remoteName,
-      commit: branchToPush.commit,
-      remoteSynched: true,
-      largeName: gitRepo.getRemoteBranchName(
-        remoteName,
-        branchToPush.shortName,
-      ),
-      backedUp: true,
-    };
-
-    await this.branchRepository.upsertByDirectoryAndLargeName(newBranch);
-
-    await this.gitService.updateRepoCountsByDirectory({
-      directory: branchToPush.directory,
-    });
-
-    await this.gitService.updateRemoteCountsByDirectoryAndName({
-      directory: branchToPush.directory,
-      name: remoteName,
-    });
-
-    return result;
-  }
-
-  async pull({
-    directory,
-    remoteName,
-    branchLargeName,
-  }: RemotePullRequestPayload) {
-    const branchToPull = await this.branchRepository.findByRepoAndLargeName({
-      directory,
-      largeName: branchLargeName,
-    });
-    if (branchToPull.remote) {
-      throw new BadRequestException('branch should be a local branch');
-    }
-    const gitRepo = RepoHelper.getGitRepo(branchToPull.directory);
-    await gitRepo.checkout(branchToPull.shortName);
-    const result = await gitRepo.pull(remoteName, branchToPull.shortName);
-    await gitRepo.checkout('-');
-
-    const branches = await gitRepo.getBranches();
-    const branch = branches.find(
-      (b) => !b.remote && b.shortName === branchToPull.shortName,
-    );
-
-    const updateBranch: Branch = {
-      ...branchToPull,
-      ...branch,
-    };
-
-    await this.branchRepository.upsertByDirectoryAndLargeName(updateBranch);
-
-    await this.gitService.updateRepoCountsByDirectory({
-      directory: branchToPull.directory,
-    });
-
-    await this.gitService.updateRemoteCountsByDirectoryAndName({
-      directory: branchToPull.directory,
-      name: remoteName,
-    });
-
-    return result;
   }
 }

@@ -1,6 +1,6 @@
 import { IsNotEmpty, IsString } from 'class-validator';
 
-export class RemoteCheckoutRequestPayload {
+export class PullRequestPayload {
   @IsString()
   @IsNotEmpty()
   readonly directory: string;
@@ -11,5 +11,5 @@ export class RemoteCheckoutRequestPayload {
 
   @IsString()
   @IsNotEmpty()
-  readonly newBranchName: string;
+  readonly remoteName: string;
 }
