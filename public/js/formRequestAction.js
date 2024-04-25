@@ -21,7 +21,8 @@
         }
         AppHelpers.showSuccessMessage('success');
       })
-      .catch(() => {
+      .catch((err) => {
+        console.log(err);
         AppHelpers.showFailsMessage('error');
       })
       .finally(() => {

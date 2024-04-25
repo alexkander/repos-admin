@@ -123,21 +123,29 @@ export class RemoteService {
     return { remoteSynched, branchesSynched };
   }
 
-  async checkout({ branchName, remoteBranchId }: RemoteCheckoutRequestPayload) {
-    const remoteBranch = await this.branchRepository.findById(remoteBranchId);
-    const gitRepo = RepoHelper.getGitRepo(remoteBranch.directory);
-    await gitRepo.checkout(branchName, remoteBranch.commit);
+  async checkout({
+    directory,
+    branchLargeName,
+    newBranchName,
+  }: RemoteCheckoutRequestPayload) {
+    const branchToCheckout = await this.branchRepository.findByRemoteLargeName({
+      directory,
+      largeName: branchLargeName,
+    });
+
+    const gitRepo = RepoHelper.getGitRepo(branchToCheckout.directory);
+    await gitRepo.checkout(newBranchName, branchToCheckout.commit);
 
     const newBranch: Branch = {
-      directory: remoteBranch.directory,
-      shortName: branchName,
-      largeName: branchName,
-      commit: remoteBranch.commit,
-      backedUp: remoteBranch.shortName === branchName,
+      directory: branchToCheckout.directory,
+      shortName: newBranchName,
+      largeName: newBranchName,
+      commit: branchToCheckout.commit,
+      backedUp: branchToCheckout.shortName === newBranchName,
     };
     await this.branchRepository.upsertByDirectoryAndLargeName(newBranch);
     await this.gitService.updateRepoCountsByDirectory({
-      directory: remoteBranch.directory,
+      directory: branchToCheckout.directory,
     });
   }
 

@@ -1,15 +1,18 @@
 (() => {
   const onModalShow = (evt) => {
-    const remoteBranchId = evt.relatedTarget.dataset.remoteBranchId;
-    const branchName = evt.relatedTarget.dataset.branchName;
+    const repoDirectory = evt.relatedTarget.dataset.directory;
+    const branchLargeName = evt.relatedTarget.dataset.branchLargeName;
+    const branchShortName = evt.relatedTarget.dataset.branchShortName;
 
-    const inputRemoteBranchId = evt.target.querySelector(
-      '[name=remoteBranchId]',
-    );
-    const inputBranchName = evt.target.querySelector('[name=branchName]');
+    evt.target.querySelector('[name=directory]').value = repoDirectory;
+    evt.target.querySelector('[name=branchLargeName]').value = branchLargeName;
+    evt.target.querySelector('[name=newBranchName]').value = branchShortName;
 
-    inputRemoteBranchId.value = remoteBranchId;
-    inputBranchName.value = branchName;
+    console.log({
+      repoDirectory,
+      branchLargeName,
+      branchShortName,
+    });
   };
 
   document

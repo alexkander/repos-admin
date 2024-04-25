@@ -1,5 +1,4 @@
-export type BranchFilterQuery = {
+export type BranchFilterByLargeNameQuery = {
   directory: string;
-  shortName: string;
-  remote: string;
+  largeName: string;
 };

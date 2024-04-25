@@ -1,12 +1,15 @@
 import { IsNotEmpty, IsString } from 'class-validator';
-import { Types } from 'mongoose';
 
 export class RemoteCheckoutRequestPayload {
   @IsString()
   @IsNotEmpty()
-  readonly remoteBranchId: Types.ObjectId;
+  readonly directory: string;
 
   @IsString()
   @IsNotEmpty()
-  readonly branchName: string;
+  readonly branchLargeName: string;
+
+  @IsString()
+  @IsNotEmpty()
+  readonly newBranchName: string;
 }

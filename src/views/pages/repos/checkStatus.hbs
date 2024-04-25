@@ -57,20 +57,6 @@
         <td>{{ addOne @index }}</td>
         <td>
           <span>{{ name }}</span>
-          {{#with branchesByRemote.local }}
-          <a
-            class="app--pointer"
-            data-bs-toggle="modal"
-            data-bs-target="#appModalPush"
-            data-local-branch-id="{{ id }}"
-          >[push]</a>
-          <a
-            class="app--pointer"
-            data-bs-toggle="modal"
-            data-bs-target="#appModalPull"
-            data-local-branch-id="{{ id }}"
-          >[pull]</a>
-          {{/with }}
         </td>
         {{#each ../remotes }}
         <td>
@@ -82,10 +68,25 @@
               class="app--pointer"
               data-bs-toggle="modal"
               data-bs-target="#appModalCheckout"
-              data-remote-branch-id="{{ id }}"
-              data-branch-name="{{ shortName }}"
+              data-directory="{{ directory }}"
+              data-branch-large-name="{{ largeName }}"
+              data-branch-short-name="{{ shortName }}"
             >[checkout]</a>
-            </li>
+            {{!-- {{#if (eeq ../name 'local') }}
+            <a
+              class="app--pointer"
+              data-bs-toggle="modal"
+              data-bs-target="#appModalPush"
+              data-local-branch-id="{{ id }}"
+            >[push]</a>
+            {{else}}
+            <a
+              class="app--pointer"
+              data-bs-toggle="modal"
+              data-bs-target="#appModalPull"
+              data-local-branch-id="{{ id }}"
+            >[pull]</a>
+            {{/if }} --}}
           </span>
           {{/with }}
         </td>
@@ -96,7 +97,8 @@
   </table>
 </div>
 
-<form action="/remote/checkout" class="modal fade app--formRequestAction app--modalPushAndPull" id="appModalCheckout" tabindex="-1" aria-labelledby="appModalCheckoutLabel" aria-hidden="true" method="POST">
+<form action="/remote/checkout" class="modal fade app--formRequestAction" id="appModalCheckout" tabindex="-1" aria-labelledby="appModalCheckoutLabel" aria-hidden="true" method="POST">
+  <input type="hidden" class="form-control" name="directory">
   <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
     <div class="modal-content">
       <div class="modal-header">
@@ -105,10 +107,10 @@
       </div>
       <div class="modal-body">
         <div class="mb-1">
-          <label for="remoteBranchIdSelect" class="form-label">Remote branch</label>
-          <select id="remoteBranchIdSelect" class="form-select" aria-label="Select the remote branch" name="remoteBranchId">
+          <label for="select_branchLargeName" class="form-label">Branch to checkout</label>
+          <select id="select_branchLargeName" class="form-select" aria-label="Select the branch" name="branchLargeName">
             {{#each branchesToCheckout }}
-            <option value="{{id}}"
+            <option value="{{largeName}}"
             >
               {{ largeName }}
             </option>
@@ -116,8 +118,8 @@
           </select>
         </div>
         <div class="mb-1">
-          <label for="inputBranchName" class="form-label">New branch</label>
-          <input type="text" id="inputBranchName" class="form-control" name="branchName">
+          <label for="input_newBranchName" class="form-label">New branch name</label>
+          <input type="text" id="input_newBranchName" class="form-control" name="newBranchName">
         </div>
       </div>
       <div class="modal-footer">
