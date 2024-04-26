@@ -48,6 +48,10 @@ export class BranchRepository {
     return (await record.save()).toJSON();
   }
 
+  deleteByRemote({ directory, name: remote }: RemoteFilterQuery) {
+    return this.BranchModel.deleteMany({ directory, remote });
+  }
+
   deleteByRemotesExcludingBranchLargeNames({
     directory,
     remoteNames,

@@ -33,6 +33,7 @@
         <th>url</th>
         <th>branches</th>
         <th>branchesToCheck</th>
+        <th></th>
       </tr>
     </thead>
     <tbody>
@@ -43,6 +44,26 @@
         <td>{{ url }}</td>
         <td>{{ branches }}</td>
         <td>{{ branchesToCheck }}</td>
+        <td>
+          <a
+            class="link-secondary app--pointer app--buttonRequestAction"
+            data-app--url="/remote/{{ _id }}/sync"
+            data-app--method="POST"
+          >
+            [sync]
+          </a>
+          {{#if (isAllowDestructiveActions) }}
+          <a
+            class="link-secondary app--pointer"
+            data-bs-toggle="modal"
+            data-bs-target="#appModalRemoteRemove"
+            data-app--directory="{{ directory }}"
+            data-app--remote-name="{{ name }}"
+          >
+            [remove]
+          </a>
+          {{/if }}
+        </td>
       </tr>
       {{/each }}
     </tbody>
@@ -121,7 +142,7 @@
 
 <form action="/branch/checkout" class="modal fade app--formRequestAction" id="appModalBranchCheckout" tabindex="-1" aria-labelledby="appModalBranchCheckoutLabel" aria-hidden="true" method="POST">
   <input type="hidden" class="form-control" name="directory">
-  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
     <div class="modal-content">
       <div class="modal-header">
         <h1 class="modal-title fs-5" id="appModalBranchCheckoutLabel">Checkout</h1>
@@ -157,7 +178,7 @@
 
 <form action="/branch/push" class="modal fade app--formRequestAction" id="appModalBranchPush" tabindex="-1" aria-labelledby="appModalBranchPushLabel" aria-hidden="true" method="POST">
   <input type="hidden" class="form-control" name="directory">
-  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
     <div class="modal-content">
       <div class="modal-header">
         <h1 class="modal-title fs-5" id="appModalBranchPushLabel">Push</h1>
@@ -198,7 +219,7 @@
 
 <form action="/branch/pull" class="modal fade app--formRequestAction" id="appModalBranchPull" tabindex="-1" aria-labelledby="appModalBranchPullLabel" aria-hidden="true" method="POST">
   <input type="hidden" class="form-control" name="directory">
-  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
     <div class="modal-content">
       <div class="modal-header">
         <h1 class="modal-title fs-5" id="appModalBranchPullLabel">Pull</h1>
@@ -240,7 +261,7 @@
 <form action="/branch/remove" class="modal fade app--formRequestAction" id="appModalBranchRemove" tabindex="-1" aria-labelledby="appModalBranchRemoveLabel" aria-hidden="true" method="POST">
   <input type="hidden" class="form-control" name="directory">
   <input type="hidden" class="form-control" name="branchLargeName">
-  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
     <div class="modal-content">
       <div class="modal-header">
         <h1 class="modal-title fs-5" id="appModalBranchRemoveLabel">Remove branch</h1>
@@ -270,7 +291,7 @@
 
 <form action="/remote/add-remote" class="modal fade app--formRequestAction" id="appModalAddRemote" tabindex="-1" aria-labelledby="appModalAddRemoteLabel" aria-hidden="true" method="POST">
   <input type="hidden" class="form-control" name="directory">
-  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
     <div class="modal-content">
       <div class="modal-header">
         <h1 class="modal-title fs-5" id="appModalAddRemoteLabel">Add remote</h1>
@@ -297,7 +318,38 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-        <button type="submit" class="btn btn-success">Create</button>
+        <button type="submit" class="btn btn-success">Add</button>
+      </div>
+    </div>
+  </div>
+</form>
+
+<form action="/remote/remove-remote" class="modal fade app--formRequestAction" id="appModalRemoteRemove" tabindex="-1" aria-labelledby="appModalRemoteRemoveLabel" aria-hidden="true" method="POST">
+  <input type="hidden" class="form-control" name="directory">
+  <input type="hidden" class="form-control" name="remoteName">
+  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="appModalRemoteRemoveLabel">Remove Remote</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-1">
+          <p>Repository: <strong data-app--label="directory"></strong></p>
+        </div>
+        <div class="mb-1">
+          <div class="alert alert-danger" role="alert">
+            Take care. This action can be undo it.
+          </div>
+          <p>
+            Are you sure you want remove the remote
+            <strong data-app--label="remoteName"></strong>?
+          </p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="submit" class="btn btn-danger">Remove</button>
       </div>
     </div>
   </div>

@@ -209,4 +209,11 @@ export class GitService {
       branchesToCheck,
     };
   }
+
+  async removeRemoteAndBranches(filter: RemoteFilterQuery) {
+    return Promise.all([
+      this.remoteRepository.deleteByRepoAndName(filter),
+      this.branchRepository.deleteByRemote(filter),
+    ]);
+  }
 }

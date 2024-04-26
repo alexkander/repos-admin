@@ -16,6 +16,7 @@ import { RemoteGroupType } from '../types/remotes.type';
 import { TableQueryParams } from '../types/utils.types';
 import { remoteSearchValidation } from '../validations/remote.search.validator';
 import { AddRemoteRequestPayload } from './dtos/add-remote-request-body';
+import { RemoveRemoteRequestPayload } from './dtos/remove-remote-request-body';
 
 const fields = [
   { field: 'directory', text: 'directory' },
@@ -70,5 +71,10 @@ export class RemoteController {
   @Post('/add-remote')
   addRemote(@Body() body: AddRemoteRequestPayload) {
     return this.remoteService.addRemote(body);
+  }
+
+  @Post('/remove-remote')
+  removeRemote(@Body() body: RemoveRemoteRequestPayload) {
+    return this.remoteService.removeRemote(body);
   }
 }

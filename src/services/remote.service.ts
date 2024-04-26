@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { FilterQuery, Types } from 'mongoose';
 import { AddRemoteRequestPayload } from 'src/controllers/dtos/add-remote-request-body';
+import { RemoveRemoteRequestPayload } from 'src/controllers/dtos/remove-remote-request-body';
 import { RemoteHelper } from '../helpers/remote.helper';
 import { RepoHelper } from '../helpers/repo.helper';
 import { RemoteRepository } from '../repositories/remote.repository';
@@ -101,9 +102,9 @@ export class RemoteService {
 
     const branchesSynched = opts.syncBranches
       ? await this.gitService.syncDirectoryBranches({
-          ...params,
-          remoteNames: [remoteData.name],
-        })
+        ...params,
+        remoteNames: [remoteData.name],
+      })
       : null;
 
     remoteData.branchesToCheck =
@@ -130,6 +131,24 @@ export class RemoteService {
     await this.syncRemoteByDirectoryAndName(repoData.directory, remoteName, {
       syncBranches: true,
       doFetch: doFetch,
+    });
+
+    await this.gitService.updateRepoCountsByDirectory({
+      directory: repoData.directory,
+    });
+
+    return result;
+  }
+
+  async removeRemote({ directory, remoteName }: RemoveRemoteRequestPayload) {
+    const repoData = await RepoHelper.getRepoDataFromDirectory(directory);
+    const gitRepo = RepoHelper.getGitRepo(repoData.directory);
+
+    const result = await gitRepo.removeRemote(remoteName);
+
+    await this.gitService.removeRemoteAndBranches({
+      directory: repoData.directory,
+      name: remoteName,
     });
 
     await this.gitService.updateRepoCountsByDirectory({
