@@ -6,22 +6,22 @@
     <div class="col">
       <button
         class="btn btn-info app--buttonRequestAction"
-        data-url="/remote/fetchRemotesByGroup/all"
-        data-method="PUT"
+        data-app--url="/remote/fetchRemotesByGroup/all"
+        data-app--method="PUT"
       >
         Fetch all remotes
       </button>
       <button
         class="btn btn-info app--buttonRequestAction"
-        data-url="/remote/fetchRemotesByGroup/fetchStatusError"
-        data-method="PUT"
+        data-app--url="/remote/fetchRemotesByGroup/fetchStatusError"
+        data-app--method="PUT"
       >
         Fetch remotes with fetch error
       </button>
       <button
         class="btn btn-info app--buttonRequestAction"
-        data-url="/remote/fetchRemotesByGroup/fetchStatusError"
-        data-method="PUT"
+        data-app--url="/remote/fetchRemotesByGroup/fetchStatusError"
+        data-app--method="PUT"
       >
         Fetch remotes not fetched yet
       </button>
@@ -50,8 +50,8 @@
         <td class="text-nowrap">
           <a
             class="link-secondary app--pointer app--buttonRequestAction"
-            data-url="/remote/{{ _id }}/sync"
-            data-method="POST"
+            data-app--url="/remote/{{ _id }}/sync"
+            data-app--method="POST"
           >
             [sync]
           </a>

@@ -7,8 +7,8 @@
   <div>
     <a
       class="link-secondary app--pointer app--buttonRequestAction"
-      data-url="/repo/{{ repo._id }}/syncAll"
-      data-method="POST"
+      data-app--url="/repo/{{ repo._id }}/syncAll"
+      data-app--method="POST"
     >
       [sync]
     </a>
@@ -68,32 +68,34 @@
               class="app--pointer"
               data-bs-toggle="modal"
               data-bs-target="#appModalBranchCheckout"
-              data-directory="{{ directory }}"
-              data-branch-large-name="{{ largeName }}"
-              data-branch-short-name="{{ shortName }}"
+              data-app--directory="{{ directory }}"
+              data-app--branch-large-name="{{ largeName }}"
+              data-app--new-branch-name="{{ shortName }}"
             >[checkout]</a>
             {{#if (eeq ../name 'local') }}
             <a
               class="app--pointer"
               data-bs-toggle="modal"
               data-bs-target="#appModalBranchPush"
-              data-directory="{{ directory }}"
-              data-branch-large-name="{{ largeName }}"
+              data-app--directory="{{ directory }}"
+              data-app--branch-large-name="{{ largeName }}"
+              data-app--remote-name=""
             >[push]</a>
             <a
               class="app--pointer"
               data-bs-toggle="modal"
               data-bs-target="#appModalBranchPull"
-              data-directory="{{ directory }}"
-              data-branch-large-name="{{ largeName }}"
+              data-app--directory="{{ directory }}"
+              data-app--branch-large-name="{{ largeName }}"
+              data-app--remote-name=""
             >[pull]</a>
             {{#if (isAllowDestructiveActions) }}
             <a
               class="app--pointer"
               data-bs-toggle="modal"
               data-bs-target="#appModalBranchRemove"
-              data-directory="{{ directory }}"
-              data-branch-large-name="{{ largeName }}"
+              data-app--directory="{{ directory }}"
+              data-app--branch-large-name="{{ largeName }}"
             >[remove]</a>
             {{/if }}
             {{/if }}
@@ -107,7 +109,7 @@
   </table>
 </div>
 
-<form action="/branch/checkout" class="modal fade app--formRequestAction app--modalBranchCheckout" id="appModalBranchCheckout" tabindex="-1" aria-labelledby="appModalBranchCheckoutLabel" aria-hidden="true" method="POST">
+<form action="/branch/checkout" class="modal fade app--formRequestAction" id="appModalBranchCheckout" tabindex="-1" aria-labelledby="appModalBranchCheckoutLabel" aria-hidden="true" method="POST">
   <input type="hidden" class="form-control" name="directory">
   <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
     <div class="modal-content">
@@ -117,7 +119,7 @@
       </div>
       <div class="modal-body">
         <div class="mb-1">
-          <p>Repository: <strong data-app-label="directory"></strong></p>
+          <p>Repository: <strong data-app--label="directory"></strong></p>
         </div>
         <div class="mb-1">
           <label class="form-label">Branch to checkout</label>
@@ -143,7 +145,7 @@
   </div>
 </form>
 
-<form action="/branch/push" class="modal fade app--formRequestAction app--modalBranchPushAndPull" id="appModalBranchPush" tabindex="-1" aria-labelledby="appModalBranchPushLabel" aria-hidden="true" method="POST">
+<form action="/branch/push" class="modal fade app--formRequestAction" id="appModalBranchPush" tabindex="-1" aria-labelledby="appModalBranchPushLabel" aria-hidden="true" method="POST">
   <input type="hidden" class="form-control" name="directory">
   <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
     <div class="modal-content">
@@ -153,7 +155,7 @@
       </div>
       <div class="modal-body">
         <div class="mb-1">
-          <p>Repository: <strong data-app-label="directory"></strong></p>
+          <p>Repository: <strong data-app--label="directory"></strong></p>
         </div>
         <div class="mb-1">
           <label class="form-label">Branch to push</label>
@@ -184,7 +186,7 @@
   </div>
 </form>
 
-<form action="/branch/pull" class="modal fade app--formRequestAction app--modalBranchPushAndPull" id="appModalBranchPull" tabindex="-1" aria-labelledby="appModalBranchPullLabel" aria-hidden="true" method="POST">
+<form action="/branch/pull" class="modal fade app--formRequestAction" id="appModalBranchPull" tabindex="-1" aria-labelledby="appModalBranchPullLabel" aria-hidden="true" method="POST">
   <input type="hidden" class="form-control" name="directory">
   <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
     <div class="modal-content">
@@ -194,7 +196,7 @@
       </div>
       <div class="modal-body">
         <div class="mb-1">
-          <p>Repository: <strong data-app-label="directory"></strong></p>
+          <p>Repository: <strong data-app--label="directory"></strong></p>
         </div>
         <div class="mb-1">
           <label class="form-label">Branch to pull</label>
@@ -225,7 +227,7 @@
   </div>
 </form>
 
-<form action="/branch/remove" class="modal fade app--formRequestAction app--modalBranchRemove" id="appModalBranchRemove" tabindex="-1" aria-labelledby="appModalBranchRemoveLabel" aria-hidden="true" method="POST">
+<form action="/branch/remove" class="modal fade app--formRequestAction" id="appModalBranchRemove" tabindex="-1" aria-labelledby="appModalBranchRemoveLabel" aria-hidden="true" method="POST">
   <input type="hidden" class="form-control" name="directory">
   <input type="hidden" class="form-control" name="branchLargeName">
   <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
@@ -236,7 +238,7 @@
       </div>
       <div class="modal-body">
         <div class="mb-1">
-          <p>Repository: <strong data-app-label="directory"></strong></p>
+          <p>Repository: <strong data-app--label="directory"></strong></p>
         </div>
         <div class="mb-1">
           <div class="alert alert-danger" role="alert">
@@ -244,7 +246,7 @@
           </div>
           <p>
             Are you sure you want remove local branch
-            <strong data-app-label="branchLargeName"></strong>?
+            <strong data-app--label="branchLargeName"></strong>?
 
           </p>
         </div>

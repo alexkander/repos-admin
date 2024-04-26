@@ -30,7 +30,13 @@
       });
   };
 
+  const onModalShow = (evt) => {
+    AppHelpers.prepareFormFields(evt.relatedTarget, evt.target);
+    AppHelpers.prepareLabels(evt.target);
+  };
+
   document.querySelectorAll('.app--formRequestAction').forEach((element) => {
     element.addEventListener('submit', onFormSubmit);
+    element.addEventListener('show.bs.modal', onModalShow);
   });
 })();

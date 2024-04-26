@@ -64,12 +64,22 @@
   };
 
   AppHelpers.prepareLabels = (parentElement) => {
-    parentElement.querySelectorAll('[data-app-label]').forEach((element) => {
-      const prop = element.dataset.appLabel;
+    parentElement.querySelectorAll('[data-app--label]').forEach((element) => {
+      const prop = element.dataset['app-Label'];
       const input = parentElement.querySelector(`[name=${prop}]`);
       const text = input?.value || '';
       element.innerHTML = text;
     });
+  };
+
+  AppHelpers.prepareFormFields = (relatedTarget, target) => {
+    Object.keys(relatedTarget.dataset)
+      .filter((p) => p.startsWith('app-'))
+      .forEach((datasetKey) => {
+        const propName = `${datasetKey.substring(4, 5).toLowerCase()}${datasetKey.substring(5)}`;
+        const value = relatedTarget.dataset[datasetKey];
+        target.querySelector(`[name=${propName}]`).value = value;
+      });
   };
 
   window.AppHelpers = AppHelpers;

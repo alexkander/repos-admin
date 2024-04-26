@@ -3,8 +3,8 @@
     event.preventDefault();
     const button = event.target;
     button.disabled = true;
-    const url = button.dataset.url;
-    const method = button.dataset.method;
+    const url = button.dataset['app-Url'];
+    const method = button.dataset['app-Method'];
     const options = { method };
     fetch(`${url}`, options)
       .then(async () => {

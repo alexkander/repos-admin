@@ -23,7 +23,7 @@
 
   const onSortByClick = function (event) {
     const label = event.target;
-    const field = label.dataset.field;
+    const field = label.dataset['app-Field'];
     newQuery.sort = newQuery.sort || {};
     if (!newQuery.sort[field]) {
       newQuery.sort[field] = 'asc';
