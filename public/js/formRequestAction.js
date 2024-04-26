@@ -3,10 +3,13 @@
     event.preventDefault();
     const formElement = event.target;
     formElement.disabled = true;
-    const formData = new FormData(event.target);
+    const inputElements = event.target.querySelectorAll('[name]');
     const payload = {};
-    for (var pair of formData.entries()) {
-      payload[pair[0]] = pair[1];
+    for (const inputElement of inputElements) {
+      const isCheckbox = inputElement.type === 'checkbox';
+      const name = inputElement.name;
+      const value = isCheckbox ? !!inputElement.checked : inputElement.value;
+      payload[name] = value;
     }
     const url = event.target.action;
     const options = {

@@ -14,7 +14,17 @@
     </a>
   </div>
   <hr>
-  <h5>remotes ({{ allRemotes.length }})</h5>
+  <div class="row">
+    <h5 class="col-auto">remotes ({{ allRemotes.length }})</h5>
+    <a
+      class="col-auto app--pointer"
+      data-bs-toggle="modal"
+      data-bs-target="#appModalAddRemote"
+      data-app--directory="{{ repo.directory }}"
+    >
+      [add remote]
+    </a>
+  </div>
   <table class="table table-sm">
     <thead>
       <tr>
@@ -122,8 +132,8 @@
           <p>Repository: <strong data-app--label="directory"></strong></p>
         </div>
         <div class="mb-1">
-          <label class="form-label">Branch to checkout</label>
-          <select class="form-select" aria-label="Select the branch" name="branchLargeName">
+          <label class="form-label" for="appModalBranchCheckout_branchLargeName">Branch to checkout</label>
+          <select class="form-select" aria-label="Select the branch" name="branchLargeName" id="appModalBranchCheckout_branchLargeName">
             {{#each branchesToCheckout }}
             <option value="{{largeName}}"
             >
@@ -133,8 +143,8 @@
           </select>
         </div>
         <div class="mb-1">
-          <label class="form-label">New branch name</label>
-          <input type="text" class="form-control" name="newBranchName">
+          <label class="form-label" for="appModalBranchCheckout_newBranchName">New branch name</label>
+          <input type="text" class="form-control" name="newBranchName" id="appModalBranchCheckout_newBranchName">
         </div>
       </div>
       <div class="modal-footer">
@@ -158,8 +168,8 @@
           <p>Repository: <strong data-app--label="directory"></strong></p>
         </div>
         <div class="mb-1">
-          <label class="form-label">Branch to push</label>
-          <select class="form-select" aria-label="Select branch to push" name="branchLargeName">
+          <label class="form-label" for="appModalBranchPush_branchLargeName">Branch to push</label>
+          <select class="form-select" aria-label="Select branch to push" name="branchLargeName" id="appModalBranchPush_branchLargeName">
             {{#each branches }}
             {{#with branchesByRemote.local }}
             <option value="{{ largeName }}">{{ largeName }}</option>
@@ -168,8 +178,8 @@
           </select>
         </div>
         <div class="mb-1">
-          <label class="form-label">Remote</label>
-          <select class="form-select" aria-label="Select remote to" name="remoteName">
+          <label class="form-label" for="appModalBranchPush_remoteName">Remote</label>
+          <select class="form-select" aria-label="Select remote to" name="remoteName" id="appModalBranchPush_remoteName">
             {{#each remotes }}
             {{#if _id }}
             <option value="{{ name }}">{{ name }}</option>
@@ -199,8 +209,8 @@
           <p>Repository: <strong data-app--label="directory"></strong></p>
         </div>
         <div class="mb-1">
-          <label class="form-label">Branch to pull</label>
-          <select class="form-select" aria-label="Select local branch to" name="branchLargeName">
+          <label class="form-label" for="appModalBranchPull_branchLargeName">Branch to pull</label>
+          <select class="form-select" aria-label="Select local branch to" name="branchLargeName" id="appModalBranchPull_branchLargeName">
             {{#each branches }}
             {{#with branchesByRemote.local }}
             <option value="{{ largeName }}">{{ largeName }}</option>
@@ -209,8 +219,8 @@
           </select>
         </div>
         <div class="mb-1">
-          <label class="form-label">Remote</label>
-          <select class="form-select" aria-label="Select remote from" name="remoteName">
+          <label class="form-label" for="appModalBranchPull_remoteName">Remote</label>
+          <select class="form-select" aria-label="Select remote from" name="remoteName" id="appModalBranchPull_remoteName">
             {{#each remotes }}
             {{#if _id }}
             <option value="{{ name }}">{{ name }}</option>
@@ -247,7 +257,6 @@
           <p>
             Are you sure you want remove local branch
             <strong data-app--label="branchLargeName"></strong>?
-
           </p>
         </div>
       </div>
@@ -259,9 +268,41 @@
   </div>
 </form>
 
+<form action="/remote/add-remote" class="modal fade app--formRequestAction" id="appModalAddRemote" tabindex="-1" aria-labelledby="appModalAddRemoteLabel" aria-hidden="true" method="POST">
+  <input type="hidden" class="form-control" name="directory">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="appModalAddRemoteLabel">Add remote</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-1">
+          <p>Repository: <strong data-app--label="directory"></strong></p>
+        </div>
+        <div class="mb-1">
+          <label class="form-label" for="appModalAddRemote_remoteName">New remote name</label>
+          <input type="text" class="form-control" name="remoteName" id="appModalAddRemote_remoteName">
+        </div>
+        <div class="mb-1">
+          <label class="form-label" for="appModalAddRemote_remoteUrl">Remote URL</label>
+          <input type="text" class="form-control" name="remoteUrl" id="appModalAddRemote_remoteUrl">
+        </div>
+        <div class="mb-1">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="doFetch" id="appModalAddRemote_doFetch">
+            <label class="form-check-label" for="appModalAddRemote_doFetch">Fetch immediately</label>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="submit" class="btn btn-success">Create</button>
+      </div>
+    </div>
+  </div>
+</form>
+
 <script src="/js/buttonRequestAction.js"></script>
 <script src="/js/formRequestAction.js"></script>
-<script src="/js/modals/checkoutBranch.js"></script>
-<script src="/js/modals/pushAndPullBranch.js"></script>
-<script src="/js/modals/removeBranch.js"></script>
 {{/layout}}

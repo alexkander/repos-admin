@@ -48,12 +48,17 @@ export class BranchRepository {
     return (await record.save()).toJSON();
   }
 
-  deleteByRepoExcludingBranchLargeNames({
+  deleteByRemotesExcludingBranchLargeNames({
     directory,
+    remoteNames,
     excludeBranchLargeNames,
-  }: RepoFilterQuery & { excludeBranchLargeNames: string[] }) {
+  }: RepoFilterQuery & {
+    remoteNames: string[];
+    excludeBranchLargeNames: string[];
+  }) {
     return this.BranchModel.deleteMany({
       directory,
+      remote: { $in: remoteNames },
       largeName: { $nin: excludeBranchLargeNames },
     });
   }

@@ -155,8 +155,9 @@ export class GitService {
     });
 
     const branchesNames = gitBranches.map(({ largeName }) => largeName);
-    await this.branchRepository.deleteByRepoExcludingBranchLargeNames({
+    await this.branchRepository.deleteByRemotesExcludingBranchLargeNames({
       directory,
+      remoteNames,
       excludeBranchLargeNames: branchesNames,
     });
 
