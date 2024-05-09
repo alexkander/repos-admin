@@ -100,12 +100,14 @@ export class RemoteService {
       Object.assign(remoteData, status);
     }
 
-    const branchesSynched = opts.syncBranches
-      ? await this.gitService.syncDirectoryBranches({
-        ...params,
-        remoteNames: [remoteData.name],
-      })
-      : null;
+    const branchesSynched = await (() => {
+      if (opts.syncBranches) {
+        return this.gitService.syncDirectoryBranches({
+          ...params,
+          remoteNames: [remoteData.name],
+        });
+      }
+    })();
 
     remoteData.branchesToCheck =
       branchesSynched?.filter((b) => !b.backedUp)?.length || 0;

@@ -46,6 +46,7 @@ export class RepoController {
       doFetch: false,
       syncBranches: false,
       syncRemotes: false,
+      syncTags: false,
     });
   }
 
@@ -55,6 +56,7 @@ export class RepoController {
       doFetch: true,
       syncBranches: true,
       syncRemotes: true,
+      syncTags: true,
     });
   }
 
@@ -64,6 +66,7 @@ export class RepoController {
       doFetch: true,
       syncBranches: true,
       syncRemotes: true,
+      syncTags: true,
     });
   }
 

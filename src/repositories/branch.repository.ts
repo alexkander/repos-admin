@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
+import { FilterQuery, Model, Types } from 'mongoose';
 import { BranchFilterByLargeNameQuery } from 'src/types/branch.type';
 import { Branch } from '../schemas/branch.schema';
 import { RemoteFilterQuery, RepoFilterQuery } from '../types/remotes.type';
@@ -57,13 +57,16 @@ export class BranchRepository {
     remoteNames,
     excludeBranchLargeNames,
   }: RepoFilterQuery & {
-    remoteNames: string[];
+    remoteNames?: string[];
     excludeBranchLargeNames: string[];
   }) {
-    return this.BranchModel.deleteMany({
+    const filter: FilterQuery<Branch> = {
       directory,
-      remote: { $in: remoteNames },
       largeName: { $nin: excludeBranchLargeNames },
-    });
+    };
+    if (remoteNames) {
+      filter.remote = { $in: remoteNames };
+    }
+    return this.BranchModel.deleteMany(filter);
   }
 }

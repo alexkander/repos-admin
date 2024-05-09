@@ -50,22 +50,25 @@ export class RepoService {
     const gitRepo = RepoHelper.getGitRepo(repoData.directory);
     const params = { gitRepo, directory: repoData.directory };
 
-    const remotesSynched = opts.syncRemotes
-      ? await this.gitService.syncDirectoryRemotes({
+    const remotesSynched = await (() => {
+      if (opts.syncRemotes) {
+        return this.gitService.syncDirectoryRemotes({
           ...params,
           doFetch: opts.doFetch,
-        })
-      : null;
+        });
+      }
+    })();
 
     const remoteNames = remotesSynched?.map((r) => r.name) || [];
-
-    const branchesSynched = opts.syncBranches
-      ? await this.gitService.syncDirectoryBranches({
+    const branchesSynched = await (() => {
+      if (opts.syncBranches) {
+        return this.gitService.syncDirectoryBranches({
           ...params,
           remoteNames,
           allRemotes: true,
-        })
-      : null;
+        });
+      }
+    })();
 
     repoData.remotes = remotesSynched?.length || 0;
     repoData.branches = branchesSynched?.length || 0;

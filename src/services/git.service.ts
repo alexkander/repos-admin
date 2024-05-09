@@ -118,14 +118,18 @@ export class GitService {
         doFetch,
       );
     });
-    const remotesNames = allRemotes.map(({ name }) => name);
-    await this.remoteRepository.deleteByRepoExcludingRemotesNames({
-      directory,
-      excludeRemoteNames: remotesNames,
-    });
+    await this.deleteNotSynchedRemotes(directory, allRemotes);
     const result = await Promise.all(upsertPromises);
     this.logger.doLog(`- remotes to sync ${result.length}`);
     return result;
+  }
+
+  deleteNotSynchedRemotes(directory: string, synchedRemotes: GitRemoteType[]) {
+    const remotesNames = synchedRemotes.map(({ name }) => name);
+    return this.remoteRepository.deleteByRepoExcludingRemotesNames({
+      directory,
+      excludeRemoteNames: remotesNames,
+    });
   }
 
   async syncDirectoryBranches({
@@ -141,10 +145,13 @@ export class GitService {
   }) {
     const valid = await gitRepo.isRepo();
     if (!valid) return null;
-    const allBranches = await gitRepo.getBranches();
-    const gitBranches = allRemotes
-      ? [...allBranches]
-      : allBranches.filter((b) => remoteNames.indexOf(b.remote) !== -1);
+    const branches = await gitRepo.getBranches();
+    const gitBranches = (() => {
+      if (allRemotes) {
+        return [...branches];
+      }
+      return branches.filter((b) => remoteNames.indexOf(b.remote) !== -1);
+    })();
     const branchesRemotes = await gitRepo.getBranchesFromRemotes(remoteNames);
 
     gitBranches.forEach((b) => {
@@ -154,12 +161,11 @@ export class GitService {
       b.remoteSynched = branchRemote?.commit.startsWith(b.commit) || false;
     });
 
-    const branchesNames = gitBranches.map(({ largeName }) => largeName);
-    await this.branchRepository.deleteByRemotesExcludingBranchLargeNames({
-      directory,
-      remoteNames,
-      excludeBranchLargeNames: branchesNames,
-    });
+    if (allRemotes) {
+      await this.deleteNotSynchedBranches(directory, gitBranches);
+    } else {
+      await this.deleteNotSynchedBranches(directory, gitBranches, remoteNames);
+    }
 
     this.logger.doLog(`- branches to sync ${gitBranches.length}`);
     const upsertPromises = gitBranches.map((gitBranch) => {
@@ -169,6 +175,20 @@ export class GitService {
     this.logger.doLog(`- branches to sync ${result.length}`);
     return result;
   }
+
+  deleteNotSynchedBranches(
+    directory: string,
+    synchedBranches: GitBranchType[],
+    remoteNames?: string[],
+  ) {
+    const branchesNames = synchedBranches.map((b) => b.largeName);
+    return this.branchRepository.deleteByRemotesExcludingBranchLargeNames({
+      directory,
+      remoteNames,
+      excludeBranchLargeNames: branchesNames,
+    });
+  }
+
 
   async updateRepoCountsByDirectory({ directory }: RepoFilterQuery) {
     const repo = await this.repoRepository.findOneByRepo({

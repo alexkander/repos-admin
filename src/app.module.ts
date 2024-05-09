@@ -4,6 +4,7 @@ import { configuration } from './configuration/configuration';
 import { BranchController } from './controllers/branch.controller';
 import { RemoteController } from './controllers/remote.controller';
 import { RepoController } from './controllers/repo.controller';
+import { TagsController } from './controllers/tags.controller';
 import { BranchRepository } from './repositories/branch.repository';
 import { RemoteRepository } from './repositories/remote.repository';
 import { RepoRepository } from './repositories/repo.repository';
@@ -16,6 +17,7 @@ import { LoggerService } from './services/logger.service';
 import { RemoteService } from './services/remote.service';
 import { RepoService } from './services/repo.service';
 import { SearchService } from './services/search.service';
+import { TagsService } from './services/tags.service';
 
 @Module({
   imports: [
@@ -26,7 +28,12 @@ import { SearchService } from './services/search.service';
       { name: Branch.name, schema: BranchSchema },
     ]),
   ],
-  controllers: [RepoController, RemoteController, BranchController],
+  controllers: [
+    RepoController,
+    RemoteController,
+    BranchController,
+    TagsController,
+  ],
   providers: [
     LoggerService,
     SearchService,
@@ -36,6 +43,7 @@ import { SearchService } from './services/search.service';
     RemoteService,
     BranchRepository,
     BranchService,
+    TagsService,
     GitService,
   ],
 })
