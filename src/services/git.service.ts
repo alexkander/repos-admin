@@ -1,13 +1,18 @@
 import { BadGatewayException, Injectable } from '@nestjs/common';
 import { RepoHelper } from 'src/helpers/repo.helper';
 import { RepoRepository } from 'src/repositories/repo.repository';
+import { TagRepository } from 'src/repositories/tag.repository';
+import { GitRepo } from 'src/utils/gitRepo.class';
 import { RemoteHelper } from '../helpers/remote.helper';
 import { BranchRepository } from '../repositories/branch.repository';
 import { RemoteRepository } from '../repositories/remote.repository';
 import { Remote } from '../schemas/remote.schema';
-import { GitBranchType, GitRemoteType } from '../types/gitRepo.types';
+import {
+  GitBranchType,
+  GitRemoteType,
+  GitTagType,
+} from '../types/gitRepo.types';
 import { RemoteFilterQuery, RepoFilterQuery } from '../types/remotes.type';
-import { GitRepo } from '../utils/gitRepo.class';
 import { LoggerService } from './logger.service';
 
 @Injectable()
@@ -17,6 +22,7 @@ export class GitService {
     private readonly repoRepository: RepoRepository,
     private readonly remoteRepository: RemoteRepository,
     private readonly branchRepository: BranchRepository,
+    private readonly tagRepository: TagRepository,
   ) { }
 
   async getRepoBranchesAndRemotes({ directory }: RepoFilterQuery) {
@@ -189,6 +195,69 @@ export class GitService {
     });
   }
 
+  async syncDirectoryTags({
+    gitRepo,
+    directory,
+    remoteNames,
+    allRemotes,
+  }: {
+    gitRepo: GitRepo;
+    directory: string;
+    remoteNames: string[];
+    allRemotes?: boolean;
+  }) {
+    const valid = await gitRepo.isRepo();
+    if (!valid) return null;
+    const allTags = await gitRepo.getTags(remoteNames);
+    const gitTags = (() => {
+      if (allRemotes) {
+        return [...allTags];
+      }
+      return allTags.filter((t) => remoteNames.indexOf(t.remoteName) !== -1);
+    })();
+
+    const gitRemotes = allTags.filter((t) => !!t.remoteName);
+
+    gitTags.forEach((t) => {
+      const tagRemote = gitRemotes.find(
+        (rt) => t.remoteName === rt.remoteName && t.shortName === rt.shortName,
+      );
+      t.remoteSynched = tagRemote?.commit.startsWith(t.commit) || false;
+    });
+
+    if (allRemotes) {
+      await this.deleteNotSynchedTags(directory, gitTags);
+    } else {
+      await this.deleteNotSynchedTags(directory, gitTags, remoteNames);
+    }
+
+    this.logger.doLog(`- tags to sync ${gitTags.length}`);
+    const upsertPromises = gitTags.map((gitTag) => {
+      return this.syncDirectoryTag(directory, gitTag);
+    });
+    const result = await Promise.all(upsertPromises);
+    this.logger.doLog(`- tags to sync ${result.length}`);
+    return result;
+  }
+
+  deleteNotSynchedTags(
+    directory: string,
+    synchedTags: GitTagType[],
+    remoteNames?: string[],
+  ) {
+    const tagsNames = synchedTags.map((b) => b.largeName);
+    return this.tagRepository.deleteByRemotesExcludingTagLargeNames({
+      directory,
+      remoteNames,
+      excludeTagLargeNames: tagsNames,
+    });
+  }
+
+  async syncDirectoryTag(directory: string, gitTag: GitTagType) {
+    this.logger.doLog(`  sync tag: ${gitTag.shortName}`);
+    const tagData = RemoteHelper.gitTagToTag({ gitTag, directory });
+    return this.tagRepository.upsertByDirectoryAndLargeName(tagData);
+  }
 
   async updateRepoCountsByDirectory({ directory }: RepoFilterQuery) {
     const repo = await this.repoRepository.findOneByRepo({

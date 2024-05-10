@@ -109,14 +109,24 @@ export class RemoteService {
       }
     })();
 
+    const tagsSynched = await (() => {
+      if (opts.syncTags) {
+        return this.gitService.syncDirectoryTags({
+          ...params,
+          remoteNames: [remoteData.name],
+        });
+      }
+    })();
+
     remoteData.branchesToCheck =
       branchesSynched?.filter((b) => !b.backedUp)?.length || 0;
     remoteData.branches = branchesSynched?.length || 0;
+    remoteData.tags = tagsSynched?.length || 0;
 
     const remoteSynched =
       await this.remoteRepository.upsertByDirectoryAndName(remoteData);
 
-    return { remoteSynched, branchesSynched };
+    return { remoteSynched, branchesSynched, tagsSynched };
   }
 
   async addRemote({
@@ -132,6 +142,7 @@ export class RemoteService {
 
     await this.syncRemoteByDirectoryAndName(repoData.directory, remoteName, {
       syncBranches: true,
+      syncTags: true,
       doFetch: doFetch,
     });
 

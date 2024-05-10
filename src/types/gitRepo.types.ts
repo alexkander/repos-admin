@@ -16,3 +16,11 @@ export type GitBranchType = {
   remoteSynched?: boolean;
   backedUp?: boolean;
 };
+
+export type GitTagType = {
+  commit: string;
+  shortName: string;
+  largeName: string;
+  remoteName?: string;
+  remoteSynched?: boolean;
+};

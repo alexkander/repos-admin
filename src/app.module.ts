@@ -18,6 +18,8 @@ import { RemoteService } from './services/remote.service';
 import { RepoService } from './services/repo.service';
 import { SearchService } from './services/search.service';
 import { TagsService } from './services/tags.service';
+import { Tag, TagSchema } from './schemas/tag.schema';
+import { TagRepository } from './repositories/tag.repository';
 
 @Module({
   imports: [
@@ -26,6 +28,7 @@ import { TagsService } from './services/tags.service';
       { name: Repo.name, schema: RepoSchema },
       { name: Remote.name, schema: RemoteSchema },
       { name: Branch.name, schema: BranchSchema },
+      { name: Tag.name, schema: TagSchema },
     ]),
   ],
   controllers: [
@@ -44,6 +47,7 @@ import { TagsService } from './services/tags.service';
     BranchRepository,
     BranchService,
     TagsService,
+    TagRepository,
     GitService,
   ],
 })

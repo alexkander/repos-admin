@@ -1,6 +1,10 @@
 import simpleGit from 'simple-git';
 import { BranchConstants } from '../constants/branch.constants';
-import { GitBranchType, GitRemoteType } from '../types/gitRepo.types';
+import {
+  GitBranchType,
+  GitRemoteType,
+  GitTagType,
+} from '../types/gitRepo.types';
 
 export class GitRepo {
   private handler: ReturnType<typeof simpleGit>;
@@ -151,6 +155,59 @@ export class GitRepo {
         const [commit, refName] = line.split('\trefs/heads/');
         return { remoteName, commit, refName };
       });
+  }
+
+  async listRemoteTags(remoteName: string) {
+    const lines = await this.handler.raw(['ls-remote', '--tags', remoteName]);
+
+    return lines
+      .trim()
+      .split('\n')
+      .map((line) => {
+        const [commit, shortName] = line.split('\trefs/tags/');
+        const largeName = `${remoteName}::${shortName}`;
+        const result: GitTagType = {
+          remoteName,
+          commit,
+          largeName,
+          shortName,
+        };
+        return result;
+      });
+  }
+
+  async listLocalTags() {
+    const lines = await this.handler.raw(['show-ref', '--tags']);
+    return lines
+      .trim()
+      .split('\n')
+      .map((line) => {
+        const [commit, shortName] = line.split(' refs/tags/');
+        const largeName = `::${shortName}`;
+        const result: GitTagType = { commit, shortName, largeName };
+        return result;
+      });
+  }
+
+  async getTags(pRemoteNames?: string[]) {
+    const remoteNames = await (async () => {
+      if (pRemoteNames) {
+        return pRemoteNames;
+      }
+      const remotes = await this.getRemotes();
+      return remotes.map((r) => r.name);
+    })();
+    const remotesTagsPromises = remoteNames.map((remoteName) =>
+      this.listRemoteTags(remoteName),
+    );
+
+    const tagsPromises = (() => {
+      if (pRemoteNames) return remotesTagsPromises;
+      return [this.listLocalTags(), ...remotesTagsPromises];
+    })();
+
+    const results = await Promise.all(tagsPromises);
+    return results.flatMap((tags) => tags);
   }
 
   async getBranchesFromRemotes(remoteNames: string[]) {

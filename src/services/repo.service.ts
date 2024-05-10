@@ -70,7 +70,18 @@ export class RepoService {
       }
     })();
 
+    const tagsSynched = await (() => {
+      if (opts.syncTags) {
+        return this.gitService.syncDirectoryTags({
+          directory,
+          gitRepo,
+          remoteNames,
+        });
+      }
+    })();
+
     repoData.remotes = remotesSynched?.length || 0;
+    repoData.tags = tagsSynched?.length || 0;
     repoData.branches = branchesSynched?.length || 0;
     repoData.branchesToCheck =
       branchesSynched?.filter((b) => !b.backedUp)?.length || 0;

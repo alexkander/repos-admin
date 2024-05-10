@@ -64,6 +64,7 @@ export class RemoteController {
   syncById(@Param('id') id: Types.ObjectId) {
     return this.remoteService.syncRemoteById(id, {
       syncBranches: true,
+      syncTags: true,
       doFetch: true,
     });
   }

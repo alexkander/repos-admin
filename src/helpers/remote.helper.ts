@@ -1,6 +1,11 @@
+import { Tag } from 'src/schemas/tag.schema';
 import { RemoteConstants } from '../constants/remote.constants';
 import { Remote } from '../schemas/remote.schema';
-import { GitBranchType, GitRemoteType } from '../types/gitRepo.types';
+import {
+  GitBranchType,
+  GitRemoteType,
+  GitTagType,
+} from '../types/gitRepo.types';
 import {
   FetchLogStatusType,
   RemoteFetchStatus,
@@ -9,6 +14,7 @@ import {
 } from '../types/remotes.type';
 import { GitRepo } from '../utils/gitRepo.class';
 import { RepoHelper } from './repo.helper';
+import { Branch } from 'src/schemas/branch.schema';
 
 export class RemoteHelper {
   constructor() { }
@@ -19,7 +25,7 @@ export class RemoteHelper {
   }: {
     directory: string;
     remoteName: string;
-  }) {
+  }): Promise<Remote> {
     const gitRepo = RepoHelper.getGitRepo(directory);
     const remotes = await gitRepo.getRemotes();
     const gitRemote = remotes.find((r) => r.name === remoteName);
@@ -55,10 +61,23 @@ export class RemoteHelper {
   }: {
     gitBranch: GitBranchType;
     directory: string;
-  }) {
+  }): Branch {
     return {
       directory,
       ...gitBranch,
+    };
+  }
+
+  static gitTagToTag({
+    gitTag,
+    directory,
+  }: {
+    gitTag: GitTagType;
+    directory: string;
+  }): Tag {
+    return {
+      directory,
+      ...gitTag,
     };
   }
 

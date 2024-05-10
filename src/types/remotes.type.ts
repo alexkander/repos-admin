@@ -38,5 +38,6 @@ export type HostGroupFilterQuery = {
 
 export type SyncRemoteOptions = {
   syncBranches: boolean;
+  syncTags: boolean;
   doFetch: boolean;
 };
