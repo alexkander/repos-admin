@@ -55,32 +55,6 @@ export class RemoteHelper {
     };
   }
 
-  static gitBranchToBranch({
-    gitBranch,
-    directory,
-  }: {
-    gitBranch: GitBranchType;
-    directory: string;
-  }): Branch {
-    return {
-      directory,
-      ...gitBranch,
-    };
-  }
-
-  static gitTagToTag({
-    gitTag,
-    directory,
-  }: {
-    gitTag: GitTagType;
-    directory: string;
-  }): Tag {
-    return {
-      directory,
-      ...gitTag,
-    };
-  }
-
   static parseTargetInfo(url: string) {
     const array = [
       { regexp: RemoteConstants.UrlRegex.https, urlType: RemoteUrlType.HTTPS },

@@ -49,7 +49,7 @@ export class BranchService {
       directory,
       largeName: branchLargeName,
     });
-    if (branchToPush.remote) {
+    if (branchToPush.remoteName) {
       throw new BadRequestException('branch should be a local branch');
     }
     const gitRepo = RepoHelper.getGitRepo(branchToPush.directory);
@@ -58,7 +58,7 @@ export class BranchService {
     const newBranch: Branch = {
       directory: branchToPush.directory,
       shortName: branchToPush.shortName,
-      remote: remoteName,
+      remoteName,
       commit: branchToPush.commit,
       remoteSynched: true,
       largeName: gitRepo.getRemoteBranchName(
@@ -87,7 +87,7 @@ export class BranchService {
       directory,
       largeName: branchLargeName,
     });
-    if (branchToPull.remote) {
+    if (branchToPull.remoteName) {
       throw new BadRequestException('branch should be a local branch');
     }
     const gitRepo = RepoHelper.getGitRepo(branchToPull.directory);
@@ -97,7 +97,7 @@ export class BranchService {
 
     const branches = await gitRepo.getBranches();
     const branch = branches.find(
-      (b) => !b.remote && b.shortName === branchToPull.shortName,
+      (b) => !b.remoteName && b.shortName === branchToPull.shortName,
     );
 
     const updateBranch: Branch = {
@@ -124,7 +124,7 @@ export class BranchService {
       directory,
       largeName: branchLargeName,
     });
-    if (branchToRemove.remote) {
+    if (branchToRemove.remoteName) {
       throw new BadRequestException('branch should be a local branch');
     }
 

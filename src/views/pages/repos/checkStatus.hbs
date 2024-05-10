@@ -91,7 +91,7 @@
         </td>
         {{#each ../remotes }}
         <td>
-          {{#with (prop name ../branchesByRemote) }}
+          {{#with (prop name ../byRemote) }}
           <span {{#unless backedUp }}class="text-danger"{{/unless }}>
             <strong class="app--code">[{{ commit }}]</strong>
             <span>{{ largeName }}</span>
@@ -138,6 +138,67 @@
       {{/each }}
     </tbody>
   </table>
+  <h5>tags  ({{ tags.length }})</h5>
+  <table class="table table-sm">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>name</th>
+        {{#each remotes }}
+        <th>
+          <span>{{ name }}</span>
+        </th>
+        {{/each }}
+      </tr>
+    </thead>
+    <tbody>
+      {{#each tags }}
+      <tr>
+        <td>{{ addOne @index }}</td>
+        <td>
+          <span>{{ name }}</span>
+        </td>
+        {{#each ../remotes }}
+        <td>
+          {{#with (prop name ../byRemote) }}
+          <span {{#unless backedUp }}class="text-danger"{{/unless }}>
+            <strong class="app--code">[{{ commit }}]</strong>
+            <span>{{ largeName }}</span>
+            {{#if (eeq ../name 'local') }}
+            <a
+              class="app--pointer"
+              data-bs-toggle="modal"
+              {{!-- data-bs-target="#appModalBranchPush" --}}
+              data-app--directory="{{ directory }}"
+              data-app--branch-large-name="{{ largeName }}"
+              data-app--remote-name=""
+            >[push]</a>
+            <a
+              class="app--pointer"
+              data-bs-toggle="modal"
+              {{!-- data-bs-target="#appModalBranchPull" --}}
+              data-app--directory="{{ directory }}"
+              data-app--branch-large-name="{{ largeName }}"
+              data-app--remote-name=""
+            >[pull]</a>
+            {{#if (isAllowDestructiveActions) }}
+            <a
+              class="app--pointer"
+              data-bs-toggle="modal"
+              {{!-- data-bs-target="#appModalBranchRemove" --}}
+              data-app--directory="{{ directory }}"
+              data-app--branch-large-name="{{ largeName }}"
+            >[remove]</a>
+            {{/if }}
+            {{/if }}
+          </span>
+          {{/with }}
+        </td>
+        {{/each }}
+      </tr>
+      {{/each }}
+    </tbody>
+  </table>
 </div>
 
 <form action="/branch/checkout" class="modal fade app--formRequestAction" id="appModalBranchCheckout" tabindex="-1" aria-labelledby="appModalBranchCheckoutLabel" aria-hidden="true" method="POST">
@@ -155,7 +216,7 @@
         <div class="mb-1">
           <label class="form-label" for="appModalBranchCheckout_branchLargeName">Branch to checkout</label>
           <select class="form-select" aria-label="Select the branch" name="branchLargeName" id="appModalBranchCheckout_branchLargeName">
-            {{#each branchesToCheckout }}
+            {{#each allBranches }}
             <option value="{{largeName}}"
             >
               {{ largeName }}
@@ -192,7 +253,7 @@
           <label class="form-label" for="appModalBranchPush_branchLargeName">Branch to push</label>
           <select class="form-select" aria-label="Select branch to push" name="branchLargeName" id="appModalBranchPush_branchLargeName">
             {{#each branches }}
-            {{#with branchesByRemote.local }}
+            {{#with byRemote.local }}
             <option value="{{ largeName }}">{{ largeName }}</option>
             {{/with}}
             {{/each}}
@@ -233,7 +294,7 @@
           <label class="form-label" for="appModalBranchPull_branchLargeName">Branch to pull</label>
           <select class="form-select" aria-label="Select local branch to" name="branchLargeName" id="appModalBranchPull_branchLargeName">
             {{#each branches }}
-            {{#with branchesByRemote.local }}
+            {{#with byRemote.local }}
             <option value="{{ largeName }}">{{ largeName }}</option>
             {{/with}}
             {{/each}}

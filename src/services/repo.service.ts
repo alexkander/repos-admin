@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { FilterQuery, Types } from 'mongoose';
-import { Branch } from 'src/schemas/branch.schema';
 import { SyncRepoOptions } from 'src/types/repos.types';
 import { RepoHelper } from '../helpers/repo.helper';
 import { RepoRepository } from '../repositories/repo.repository';
@@ -48,12 +47,12 @@ export class RepoService {
 
     const repoData = await RepoHelper.getRepoDataFromDirectory(directory);
     const gitRepo = RepoHelper.getGitRepo(repoData.directory);
-    const params = { gitRepo, directory: repoData.directory };
 
     const remotesSynched = await (() => {
       if (opts.syncRemotes) {
         return this.gitService.syncDirectoryRemotes({
-          ...params,
+          directory,
+          gitRepo,
           doFetch: opts.doFetch,
         });
       }
@@ -63,7 +62,8 @@ export class RepoService {
     const branchesSynched = await (() => {
       if (opts.syncBranches) {
         return this.gitService.syncDirectoryBranches({
-          ...params,
+          directory,
+          gitRepo,
           remoteNames,
           allRemotes: true,
         });
@@ -76,6 +76,7 @@ export class RepoService {
           directory,
           gitRepo,
           remoteNames,
+          allRemotes: true,
         });
       }
     })();
@@ -106,38 +107,42 @@ export class RepoService {
 
   async checkStatusById(id: Types.ObjectId) {
     const repo = await this.repoRepository.findById(id);
-    const { allBranches, allRemotes } =
+    const { allBranches, allRemotes, allTags } =
       await this.gitService.getRepoBranchesAndRemotes(repo);
     const remotes = [{ name: 'local' }].concat(allRemotes);
-    const branchesToCheckout = allBranches.map((branch) => {
-      return {
-        ...branch,
-        id: branch._id.toString(),
-      };
-    });
-    const branchesMap: Record<
-      string,
-      {
-        name: string;
-        branchesByRemote: Record<string, Branch>;
-      }
-    > = {};
-    branchesToCheckout.forEach((branch) => {
-      const key = branch.shortName;
-      branchesMap[key] = branchesMap[key] || {
-        name: branch.shortName,
-        branchesByRemote: {},
-      };
-      branchesMap[key].branchesByRemote[branch.remote || 'local'] = branch;
-    });
+
+    const branchesMap = this.groupByShortNameAndRemotes(allBranches);
+    const tagsMap = this.groupByShortNameAndRemotes(allTags);
+
     const branches = Object.values(branchesMap);
+    const tags = Object.values(tagsMap);
     return {
       repo,
       remotes,
       allRemotes,
-      allBranches,
-      branchesToCheckout,
       branches,
+      allBranches,
+      tags,
+      allTags,
     };
+  }
+
+  groupByShortNameAndRemotes<
+    T extends { shortName: string; remoteName?: string },
+  >(allBranches: T[]) {
+    const branchesMap: Record<
+      string,
+      { name: string; byRemote: Record<string, T> }
+    > = {};
+    allBranches.forEach((branch) => {
+      const key = branch.shortName;
+      branchesMap[key] = branchesMap[key] || {
+        name: branch.shortName,
+        byRemote: {},
+      };
+      branchesMap[key].byRemote[branch.remoteName || 'local'] = branch;
+    });
+
+    return branchesMap;
   }
 }

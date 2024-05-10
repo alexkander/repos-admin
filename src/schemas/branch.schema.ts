@@ -8,7 +8,7 @@ export class Branch {
   @Prop() directory: string;
   @Prop() shortName: string;
   @Prop() largeName: string;
-  @Prop() remote?: string;
+  @Prop() remoteName?: string;
   @Prop() commit: string;
   @Prop() remoteSynched?: boolean;
   @Prop() backedUp?: boolean;

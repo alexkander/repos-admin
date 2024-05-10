@@ -19,8 +19,8 @@ export class BranchRepository {
     return this.BranchModel.find({ directory }).lean();
   }
 
-  findByRemote({ directory, name: remote }: RemoteFilterQuery) {
-    return this.BranchModel.find({ directory, remote }).lean();
+  findByRemote({ directory, name: remoteName }: RemoteFilterQuery) {
+    return this.BranchModel.find({ directory, remoteName }).lean();
   }
 
   findByRepoAndLargeName({
@@ -48,8 +48,8 @@ export class BranchRepository {
     return (await record.save()).toJSON();
   }
 
-  deleteByRemote({ directory, name: remote }: RemoteFilterQuery) {
-    return this.BranchModel.deleteMany({ directory, remote });
+  deleteByRemote({ directory, name: remoteName }: RemoteFilterQuery) {
+    return this.BranchModel.deleteMany({ directory, remoteName });
   }
 
   deleteByRemotesExcludingBranchLargeNames({
@@ -65,7 +65,7 @@ export class BranchRepository {
       largeName: { $nin: excludeBranchLargeNames },
     };
     if (remoteNames) {
-      filter.remote = { $in: remoteNames };
+      filter.remoteName = { $in: remoteNames };
     }
     return this.BranchModel.deleteMany(filter);
   }

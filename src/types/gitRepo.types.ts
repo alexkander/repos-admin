@@ -11,7 +11,7 @@ export type GitRemoteType = {
 export type GitBranchType = {
   shortName: string;
   largeName: string;
-  remote: string;
+  remoteName: string;
   commit: string;
   remoteSynched?: boolean;
   backedUp?: boolean;

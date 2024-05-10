@@ -41,13 +41,13 @@ export class GitRepo {
     const remotesNames = remotes.map(({ name }) => name);
     const branchesInfo = await this.handler.branch();
     const branches = Object.values(branchesInfo.branches).map((branch) => {
-      const remote = remotesNames.find((remoteName) => {
+      const remoteName = remotesNames.find((remoteName) => {
         const remotePrefix = this.getRemoteBranchName(remoteName, '');
         return branch.name.startsWith(remotePrefix);
       });
-      const remotePrefix = this.getRemoteBranchName(remote, '');
+      const remotePrefix = this.getRemoteBranchName(remoteName, '');
       const largeName = branch.name;
-      const shortName = remote
+      const shortName = remoteName
         ? largeName.substring(remotePrefix.length)
         : largeName;
       const commit = branch.commit;
@@ -55,7 +55,7 @@ export class GitRepo {
       const result: GitBranchType = {
         shortName,
         largeName,
-        remote,
+        remoteName: remoteName,
         commit,
       };
 
@@ -71,7 +71,7 @@ export class GitRepo {
   async isBackedUp(branch: GitBranchType, branches: GitBranchType[]) {
     const backedUp = await this.isRemoteBackedUp(branch, branches);
     if (!backedUp) {
-      if (branch.remote) {
+      if (branch.remoteName) {
         return await this.isLocalBackedUp(branch, branches);
       }
     }
@@ -83,7 +83,7 @@ export class GitRepo {
     branches: GitBranchType[],
   ) {
     const localBranch = branches.find(
-      (lb) => !lb.remote && lb.shortName === remoteBranch.shortName,
+      (lb) => !lb.remoteName && lb.shortName === remoteBranch.shortName,
     );
     if (localBranch?.commit) {
       return await this.isDescendent(remoteBranch.commit, localBranch.commit);
@@ -94,8 +94,8 @@ export class GitRepo {
   async isRemoteBackedUp(branch: GitBranchType, branches: GitBranchType[]) {
     const remoteBranches = branches.filter(
       (rb) =>
-        rb.remote &&
-        rb.remote !== branch.remote &&
+        rb.remoteName &&
+        rb.remoteName !== branch.remoteName &&
         rb.shortName === branch.shortName,
     );
     for (const remoteBranch of remoteBranches) {

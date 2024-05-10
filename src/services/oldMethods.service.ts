@@ -159,8 +159,8 @@ export class OldMethodsService {
   async getCompareSummaryBranches(remote: Remote) {
     const gitRepo = RepoHelper.getGitRepo(remote.directory);
     const branches = await gitRepo.getBranches();
-    const remoteBranches = branches.filter((b) => b.remote === remote.name);
-    const otherBranches = branches.filter((b) => b.remote !== remote.name);
+    const remoteBranches = branches.filter((b) => b.remoteName === remote.name);
+    const otherBranches = branches.filter((b) => b.remoteName !== remote.name);
 
     const resultsPromises = remoteBranches.map(async (branch) => {
       const sameNameBranchesPromises = otherBranches
@@ -168,7 +168,7 @@ export class OldMethodsService {
         .map(async (b) => {
           return {
             branch: b.shortName,
-            remote: b.remote,
+            remote: b.remoteName,
             commit: b.commit,
             isDescendant: await gitRepo.isDescendent(b.commit, branch.commit),
           };

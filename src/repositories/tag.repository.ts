@@ -8,6 +8,10 @@ import { RepoFilterQuery } from 'src/types/remotes.type';
 export class TagRepository {
   constructor(@InjectModel(Tag.name) private readonly TagModel: Model<Tag>) { }
 
+  findByRepo({ directory }: RepoFilterQuery) {
+    return this.TagModel.find({ directory }).lean();
+  }
+
   async upsertByDirectoryAndLargeName(data: Tag) {
     const cond = { directory: data.directory, largeName: data.largeName };
     const record = await this.TagModel.findOne(cond);

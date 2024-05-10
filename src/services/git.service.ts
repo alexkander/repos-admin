@@ -14,6 +14,8 @@ import {
 } from '../types/gitRepo.types';
 import { RemoteFilterQuery, RepoFilterQuery } from '../types/remotes.type';
 import { LoggerService } from './logger.service';
+import { TagHelper } from 'src/helpers/tag.helper';
+import { BranchHelper } from 'src/helpers/branch.helper';
 
 @Injectable()
 export class GitService {
@@ -26,11 +28,12 @@ export class GitService {
   ) { }
 
   async getRepoBranchesAndRemotes({ directory }: RepoFilterQuery) {
-    const [allBranches, allRemotes] = await Promise.all([
+    const [allBranches, allRemotes, allTags] = await Promise.all([
       this.branchRepository.findByRepo({ directory }),
       this.remoteRepository.findByRepo({ directory }),
+      this.tagRepository.findByRepo({ directory }),
     ]);
-    return { allBranches, allRemotes };
+    return { allBranches, allRemotes, allTags };
   }
 
   async fetchAllRepoRemotes({ directory }: RepoFilterQuery) {
@@ -92,7 +95,7 @@ export class GitService {
 
   async syncDirectoryBranch(directory: string, gitBranch: GitBranchType) {
     this.logger.doLog(`  sync branch: ${gitBranch.shortName}`);
-    const branchData = RemoteHelper.gitBranchToBranch({
+    const branchData = BranchHelper.gitBranchToBranch({
       gitBranch,
       directory,
     });
@@ -115,7 +118,7 @@ export class GitService {
     this.logger.doLog(`- remotes to sync ${allRemotes.length}`);
     const upsertPromises = allRemotes.map((gitRemote) => {
       const remotesBranches = allBranches.filter(
-        (b) => b.remote === gitRemote.name,
+        (b) => b.remoteName === gitRemote.name,
       );
       return this.syncDirectoryRemote(
         directory,
@@ -156,13 +159,13 @@ export class GitService {
       if (allRemotes) {
         return [...branches];
       }
-      return branches.filter((b) => remoteNames.indexOf(b.remote) !== -1);
+      return branches.filter((b) => remoteNames.indexOf(b.remoteName) !== -1);
     })();
     const branchesRemotes = await gitRepo.getBranchesFromRemotes(remoteNames);
 
     gitBranches.forEach((b) => {
       const branchRemote = branchesRemotes.find(
-        (br) => b.shortName === br.refName && b.remote === br.remoteName,
+        (br) => b.shortName === br.refName && b.remoteName === br.remoteName,
       );
       b.remoteSynched = branchRemote?.commit.startsWith(b.commit) || false;
     });
@@ -208,7 +211,7 @@ export class GitService {
   }) {
     const valid = await gitRepo.isRepo();
     if (!valid) return null;
-    const allTags = await gitRepo.getTags(remoteNames);
+    const allTags = await gitRepo.getTags();
     const gitTags = (() => {
       if (allRemotes) {
         return [...allTags];
@@ -255,7 +258,7 @@ export class GitService {
 
   async syncDirectoryTag(directory: string, gitTag: GitTagType) {
     this.logger.doLog(`  sync tag: ${gitTag.shortName}`);
-    const tagData = RemoteHelper.gitTagToTag({ gitTag, directory });
+    const tagData = TagHelper.gitTagToTag({ gitTag, directory });
     return this.tagRepository.upsertByDirectoryAndLargeName(tagData);
   }
 
