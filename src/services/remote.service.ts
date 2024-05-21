@@ -122,6 +122,8 @@ export class RemoteService {
       branchesSynched?.filter((b) => !b.backedUp)?.length || 0;
     remoteData.branches = branchesSynched?.length || 0;
     remoteData.tags = tagsSynched?.length || 0;
+    remoteData.tagsToCheck =
+      tagsSynched?.filter((t) => !t.backedUp)?.length || 0;
 
     const remoteSynched =
       await this.remoteRepository.upsertByDirectoryAndName(remoteData);

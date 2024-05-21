@@ -8,19 +8,15 @@ export type GitRemoteType = {
   rare: boolean;
 };
 
-export type GitBranchType = {
+export type GitReferenceType = {
   shortName: string;
   largeName: string;
-  remoteName: string;
+  remoteName?: string;
   commit: string;
   remoteSynched?: boolean;
   backedUp?: boolean;
 };
 
-export type GitTagType = {
-  commit: string;
-  shortName: string;
-  largeName: string;
-  remoteName?: string;
-  remoteSynched?: boolean;
-};
+export interface GitBranchType extends GitReferenceType {}
+
+export interface GitTagType extends GitReferenceType {}

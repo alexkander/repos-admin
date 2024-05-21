@@ -1,5 +1,7 @@
 import { BadGatewayException, Injectable } from '@nestjs/common';
+import { BranchHelper } from 'src/helpers/branch.helper';
 import { RepoHelper } from 'src/helpers/repo.helper';
+import { TagHelper } from 'src/helpers/tag.helper';
 import { RepoRepository } from 'src/repositories/repo.repository';
 import { TagRepository } from 'src/repositories/tag.repository';
 import { GitRepo } from 'src/utils/gitRepo.class';
@@ -14,8 +16,6 @@ import {
 } from '../types/gitRepo.types';
 import { RemoteFilterQuery, RepoFilterQuery } from '../types/remotes.type';
 import { LoggerService } from './logger.service';
-import { TagHelper } from 'src/helpers/tag.helper';
-import { BranchHelper } from 'src/helpers/branch.helper';
 
 @Injectable()
 export class GitService {
@@ -272,15 +272,20 @@ export class GitService {
   }
 
   async getRepoCountsByDirectory({ directory }: RepoFilterQuery) {
-    const [branchesArr, remotes] = await Promise.all([
+    const [branchesArr, tagsArr, remotes] = await Promise.all([
       this.branchRepository.findByRepo({ directory }),
+      this.tagRepository.findByRepo({ directory }),
       this.remoteRepository.countByRepo({ directory }),
     ]);
     const branches = branchesArr.length;
     const branchesToCheck = branchesArr.filter((b) => !b.backedUp).length;
+    const tags = tagsArr.length;
+    const tagsToCheck = tagsArr.filter((t) => !t.backedUp).length;
     return {
       branches,
       branchesToCheck,
+      tags,
+      tagsToCheck,
       remotes,
     };
   }
@@ -293,12 +298,19 @@ export class GitService {
   }
 
   async getRemoteCountsByDirectoryAndName(filter: RemoteFilterQuery) {
-    const branchesArr = await this.branchRepository.findByRemote(filter);
+    const [branchesArr, tagsArr] = await Promise.all([
+      this.branchRepository.findByRemote(filter),
+      this.tagRepository.findByRemote(filter),
+    ]);
     const branches = branchesArr.length;
     const branchesToCheck = branchesArr.filter((b) => !b.backedUp).length;
+    const tags = tagsArr.length;
+    const tagsToCheck = tagsArr.filter((t) => !t.backedUp).length;
     return {
       branches,
       branchesToCheck,
+      tags,
+      tagsToCheck,
     };
   }
 

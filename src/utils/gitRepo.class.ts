@@ -2,6 +2,7 @@ import simpleGit from 'simple-git';
 import { BranchConstants } from '../constants/branch.constants';
 import {
   GitBranchType,
+  GitReferenceType,
   GitRemoteType,
   GitTagType,
 } from '../types/gitRepo.types';
@@ -36,7 +37,7 @@ export class GitRepo {
     return remotes;
   }
 
-  async getBranches() {
+  async getBranches(): Promise<GitBranchType[]> {
     const remotes = await this.getRemotes();
     const remotesNames = remotes.map(({ name }) => name);
     const branchesInfo = await this.handler.branch();
@@ -61,47 +62,53 @@ export class GitRepo {
 
       return result;
     });
-    const promise = branches.map(async (branch) => {
-      branch.backedUp = await this.isBackedUp(branch, branches);
+    const promises = branches.map(async (branch) => {
+      branch.backedUp = await this.isReferenceBackedUp(branch, branches);
     });
-    await Promise.all(promise);
+    await Promise.all(promises);
     return branches;
   }
 
-  async isBackedUp(branch: GitBranchType, branches: GitBranchType[]) {
-    const backedUp = await this.isRemoteBackedUp(branch, branches);
+  async isReferenceBackedUp(
+    ref: GitReferenceType,
+    references: GitReferenceType[],
+  ) {
+    const backedUp = await this.isRemoteReferenceBackedUp(ref, references);
     if (!backedUp) {
-      if (branch.remoteName) {
-        return await this.isLocalBackedUp(branch, branches);
+      if (ref.remoteName) {
+        return await this.isLocalReferenceBackedUp(ref, references);
       }
     }
     return backedUp;
   }
 
-  async isLocalBackedUp(
-    remoteBranch: GitBranchType,
-    branches: GitBranchType[],
+  async isLocalReferenceBackedUp(
+    remoteRef: GitReferenceType,
+    references: GitReferenceType[],
   ) {
-    const localBranch = branches.find(
-      (lb) => !lb.remoteName && lb.shortName === remoteBranch.shortName,
+    const localRef = references.find(
+      (lb) => !lb.remoteName && lb.shortName === remoteRef.shortName,
     );
-    if (localBranch?.commit) {
-      return await this.isDescendent(remoteBranch.commit, localBranch.commit);
+    if (localRef?.commit) {
+      return await this.isDescendent(remoteRef.commit, localRef.commit);
     }
     return true;
   }
 
-  async isRemoteBackedUp(branch: GitBranchType, branches: GitBranchType[]) {
-    const remoteBranches = branches.filter(
-      (rb) =>
-        rb.remoteName &&
-        rb.remoteName !== branch.remoteName &&
-        rb.shortName === branch.shortName,
+  async isRemoteReferenceBackedUp(
+    ref: GitReferenceType,
+    references: GitReferenceType[],
+  ) {
+    const remoteReferences = references.filter(
+      (rr) =>
+        rr.remoteName &&
+        rr.remoteName !== ref.remoteName &&
+        rr.shortName === ref.shortName,
     );
-    for (const remoteBranch of remoteBranches) {
+    for (const remoteRef of remoteReferences) {
       const isDescendent = await this.isDescendent(
-        remoteBranch?.commit,
-        branch.commit,
+        remoteRef?.commit,
+        ref.commit,
       );
       if (isDescendent) {
         return true;
@@ -189,7 +196,7 @@ export class GitRepo {
       });
   }
 
-  async getTags(pRemoteNames?: string[]) {
+  async getTags(pRemoteNames?: string[]): Promise<GitTagType[]> {
     const remoteNames = await (async () => {
       if (pRemoteNames) {
         return pRemoteNames;
@@ -206,8 +213,16 @@ export class GitRepo {
       return [this.listLocalTags(), ...remotesTagsPromises];
     })();
 
-    const results = await Promise.all(tagsPromises);
-    return results.flatMap((tags) => tags);
+    const tagsGroups = await Promise.all(tagsPromises);
+    const tags = tagsGroups.flatMap((group) => group);
+
+    const promises = tags.map(async (tag) => {
+      tag.backedUp = await this.isReferenceBackedUp(tag, tags);
+    });
+
+    await Promise.all(promises);
+
+    return tags;
   }
 
   async getBranchesFromRemotes(remoteNames: string[]) {

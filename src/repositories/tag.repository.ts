@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { FilterQuery, Model } from 'mongoose';
 import { Tag } from 'src/schemas/tag.schema';
-import { RepoFilterQuery } from 'src/types/remotes.type';
+import { RemoteFilterQuery, RepoFilterQuery } from 'src/types/remotes.type';
 
 @Injectable()
 export class TagRepository {
@@ -10,6 +10,10 @@ export class TagRepository {
 
   findByRepo({ directory }: RepoFilterQuery) {
     return this.TagModel.find({ directory }).lean();
+  }
+
+  findByRemote({ directory, name: remoteName }: RemoteFilterQuery) {
+    return this.TagModel.find({ directory, remoteName }).lean();
   }
 
   async upsertByDirectoryAndLargeName(data: Tag) {

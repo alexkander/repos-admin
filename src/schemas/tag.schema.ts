@@ -11,6 +11,7 @@ export class Tag {
   @Prop() largeName: string;
   @Prop() remoteName?: string;
   @Prop() remoteSynched?: boolean;
+  @Prop() backedUp?: boolean;
 }
 
 export const TagSchema = SchemaFactory.createForClass(Tag);

@@ -14,6 +14,7 @@ export class Remote {
   @Prop() branches?: number;
   @Prop() branchesToCheck?: number;
   @Prop() tags?: number;
+  @Prop() tagsToCheck?: number;
   @Prop() urlType?: RemoteUrlType;
   @Prop() targetHost?: string | null;
   @Prop() targetGroup?: string;

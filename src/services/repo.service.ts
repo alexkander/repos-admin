@@ -86,6 +86,7 @@ export class RepoService {
     repoData.branches = branchesSynched?.length || 0;
     repoData.branchesToCheck =
       branchesSynched?.filter((b) => !b.backedUp)?.length || 0;
+    repoData.tagsToCheck = tagsSynched?.filter((t) => !t.backedUp)?.length || 0;
 
     const repoSynched = await this.repoRepository.upsertByDirectory(repoData);
 
