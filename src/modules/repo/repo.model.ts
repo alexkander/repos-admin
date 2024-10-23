@@ -1,5 +1,3 @@
-import { Repository } from '../libs/nedb';
-
 export class RepoModel {
   _id?: string = '';
   directory: string = '';
@@ -12,5 +10,3 @@ export class RepoModel {
   tags?: number;
   tagsToCheck?: number;
 }
-
-export const RepoRepository = Repository.build(RepoModel);

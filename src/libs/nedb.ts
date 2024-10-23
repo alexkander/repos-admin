@@ -6,15 +6,15 @@ const DATA_DIRECTORY = 'data';
 export class Repository<Model extends Record<string, any>> {
   constructor(protected readonly db: Datastore) {}
 
-  findAsync(filter: Partial<Model> = {}) {
+  find(filter: Partial<Model> = {}) {
     return this.db.findAsync<Model>(filter);
   }
 
-  findOneAsync(filter: Partial<Model> = {}) {
+  findOne(filter: Partial<Model> = {}) {
     return this.db.findOneAsync<Model>(filter);
   }
 
-  insertAsync(data: Model) {
+  create(data: Model) {
     return this.db.insertAsync<Model>(data);
   }
 
@@ -24,6 +24,10 @@ export class Repository<Model extends Record<string, any>> {
 
   remove(id: string) {
     return this.db.removeAsync({ _id: id }, {});
+  }
+
+  truncate() {
+    // delete all
   }
 
   static build<T extends Record<string, any>>(ModelClass: new (...args: any[]) => T) {
