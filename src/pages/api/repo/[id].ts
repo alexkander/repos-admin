@@ -1,13 +1,13 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 
+import { repoController } from '../../../modules/repo/repo.controller';
 import { repoRepository } from '../../../modules/repo/repo.repository';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { id } = req.query;
 
   if (req.method === 'GET') {
-    const repos = await repoRepository.find();
-    const repo = repos.find((p) => p._id === id);
+    const repo = await repoController.getRepoById(id as string);
     if (repo) {
       res.status(200).json(repo);
     } else {

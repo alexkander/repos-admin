@@ -1,13 +1,12 @@
 import { GetServerSideProps } from 'next';
 
 import RepoTable from '../../components/RepoTable';
-import { RepoService } from '../../modules/repo/repo.service';
+import { repoController } from '../../modules/repo/repo.controller';
 
 const RepoHome = RepoTable;
 
 export const getServerSideProps: GetServerSideProps = async () => {
-  const repoService = new RepoService();
-  const records = await repoService.find();
+  const records = await repoController.getAllRepos();
   return {
     props: { records },
   };

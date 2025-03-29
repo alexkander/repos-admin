@@ -5,17 +5,15 @@ import { RoutesUtils } from '../../libs/routes-utils';
 import { GitService } from '../git-utils/git.service';
 import { RepoHelper } from './repo.helper';
 import { RepoModel } from './repo.model';
+import { RepoRepository } from './repo.repository';
 import { SyncRepoOptions } from './repo.types';
 
 export class RepoService {
   protected readonly logger = new Logger();
   protected readonly baseDirectory = RoutesUtils.resolve(configuration.REPOSITORIES_DIRECTORY);
   protected readonly repoRepository = Repository.build(RepoModel);
+  protected readonly repoRepository1 = new RepoRepository();
   protected readonly gitService = new GitService();
-
-  find() {
-    return this.repoRepository.find();
-  }
 
   async sync(opts: SyncRepoOptions) {
     await this.repoRepository.truncate();
@@ -51,5 +49,13 @@ export class RepoService {
     Object.assign(record, data);
     await this.repoRepository.update(record._id, { ...data });
     return record;
+  }
+
+  getAllRepos() {
+    return this.repoRepository1.findAll();
+  }
+
+  getRepoById(id: string) {
+    return this.repoRepository1.findRepoById(id);
   }
 }

@@ -3,10 +3,6 @@ import { RepoService } from './repo.service';
 export class RepoController {
   protected readonly repoService = new RepoService();
 
-  find() {
-    return this.repoService.find();
-  }
-
   sync() {
     return this.repoService.sync({
       doFetch: false,
@@ -15,4 +11,14 @@ export class RepoController {
       syncTags: false,
     });
   }
+
+  getAllRepos() {
+    return this.repoService.getAllRepos();
+  }
+
+  getRepoById(id: string) {
+    return this.repoService.getRepoById(id);
+  }
 }
+
+export const repoController = new RepoController();
